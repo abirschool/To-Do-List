@@ -1,0 +1,306 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: 'Jost', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(320deg, rgb(104, 255, 189), rgb(169, 228, 255), rgb(185, 198, 251), rgb(253, 255, 247));
+}
+
+.container{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 420px;
+    min-height: 300px;
+    height: auto;
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 3px solid #769ff880;
+    border-radius: 20px;
+}
+
+
+.to-doList{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    padding: 35px 10px;
+}
+
+.title{
+    font-size: 36px;
+    font-weight: 750;
+    color: #1e1e1e;
+    margin-bottom: 20px;
+    
+}
+
+.motivatorContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    height: 100px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(103, 159, 255, 0.7);
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.motivatorText{
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e1e1e;
+    position: relative;
+    left: -60px;
+    top: -15px;
+}
+
+.progressBarContainer{
+    width: 250px;
+    height: 20px;
+    background: rgba(5, 5, 5, 1);
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 10px;
+    top: 55px;
+    transform: translateX(-45px);
+    border: 2px solid rgba(100, 165, 255, 1);
+    overflow: hidden;
+}
+
+.progressBar{
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: linear-gradient(90deg, #4ba2ff, #8bdaff);
+    border-radius: 8px;
+    transition: width 0.25s ease-in-out;
+}
+
+.taskAmountContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 70px;
+    background: rgba(35, 35, 35, 1);
+    border-radius: 50%;
+    border: 3px solid rgb(155, 215, 255);
+    position: relative;
+    left: 65px;
+}
+
+.taskAmount{
+    font-size: 24px;
+    font-weight: 500;
+    color: #8bdaff;
+}
+
+.inputContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.taskInput{
+    width: 250px;
+    height: 50px;
+    padding: 15px 10px;
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(103, 159, 255, 0.7);
+
+}
+
+.addBtn{
+    width: 35px;
+    height: 35px;
+    background: rgba(35, 35, 35, 1);
+    border-radius: 50%;
+    border: 3px solid rgb(155, 215, 255);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.addBtn i{
+    color: #8bdaff;
+    font-size: 12px;
+}
+
+.addBtn:hover{
+    background: rgba(39, 39, 39, 0.8);
+    transform: scale(1.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.addBtn:active{
+    background: rgb(16, 16, 16);
+    transform: scale(0.9);
+    transition: all 0.2s ease-in-out;
+}
+
+.tasks{
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    transform: translateY(20px);
+}
+
+.tasks li{
+    width: 90%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    border: 2px solid rgba(103, 159, 255, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+}
+
+.taskMain{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.taskText{
+    color: #1e1e1e;
+    word-break: break-word;
+}
+
+.checkBtn{
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.taskButtons{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    
+}
+
+.taskButtons i{
+    color: #8bdaff;
+    font-size: 14px;
+    cursor: pointer;
+    background: rgba(35, 35, 35, 1);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid rgb(155, 215, 255);
+        
+}
+
+.editBtn{
+    background: transparent;
+    border: none;
+    outline: none;
+}
+.deleteBtn{
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.taskButtons i:hover{
+    background: rgba(39, 39, 39, 0.8);
+    transform: scale(1.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.taskButtons i:active{
+    background: rgb(16, 16, 16);
+    transform: scale(0.9);
+    transition: all 0.2s ease-in-out;
+}
+
+.checkBtn i{
+    color: transparent;
+    font-size: 14px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.75);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(155, 215, 255, 0.95);
+    opacity: 0.5;
+}
+
+.checkBtn i:hover{
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.checkBtn i:active{
+    background: rgba(255, 255, 255, 1);
+    transform: scale(0.9);
+    transition: all 0.2s ease-in-out;
+}
+
+.tasks li.completed .checkBtn i{
+    color: #8bdaff;
+    background: rgba(35, 35, 35, 1);
+    border: 1px solid rgb(155, 215, 255);
+    opacity: 1;
+}
+
+.tasks li.completed .checkBtn i:hover{
+    background: rgba(39, 39, 39, 0.8);
+}
+
+.tasks li.completed .checkBtn i:active{
+    background: rgb(16, 16, 16);
+}
+
+.tasks li.completed .taskText{
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+
+
+
