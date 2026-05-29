@@ -32,15 +32,108 @@
 
             </div>
 
+            <div class="activityPanel" aria-label="Daily activity chart">
+                <div class="activityHeader">
+                    <p class="activityTitle">Daily Activity</p>
+                    <p class="activitySummary">Today: 0 | This week: 0 | 0 active days in last 6 months</p>
+                </div>
+                <div class="activityGridWrap">
+                    <div class="activityMonthRow" aria-hidden="true"></div>
+                    <div class="activityBody">
+                        <div class="activityDayLabels" aria-hidden="true"></div>
+                        <div class="activityGrid" role="img" aria-label="Activity heatmap"></div>
+                    </div>
+                </div>
+                <div class="activityLegend">
+                    <span>Less</span>
+                    <span class="heatCell level-0"></span>
+                    <span class="heatCell level-1"></span>
+                    <span class="heatCell level-2"></span>
+                    <span class="heatCell level-3"></span>
+                    <span class="heatCell level-4"></span>
+                    <span>More</span>
+                </div>
+            </div>
+
             <div class="inputContainer">
 
                 <input type="text" class="taskInput" placeholder="Enter any task.."> 
+                <button class="detailsToggleBtn" type="button" aria-expanded="false" aria-controls="taskDetailsPanel">
+                    Task options
+                </button>
                 <button class="addBtn">
 
                     <i class="fa-solid fa-plus"></i>
 
                 </button>
 
+            </div>
+
+            <div class="taskDetailsPanel" id="taskDetailsPanel">
+                <div class="detailsGrid">
+                    <select class="matrixSelect" aria-label="Task priority matrix">
+                        <option value="do">Do (Important + Urgent)</option>
+                        <option value="schedule" selected>Schedule (Important)</option>
+                        <option value="delegate">Delegate (Urgent)</option>
+                        <option value="eliminate">Eliminate (Low Priority)</option>
+                    </select>
+
+                    <div class="effortContainer">
+                        <div class="taskTypePills" aria-label="Task type">
+                            <button type="button" class="typePill active" data-type="open" data-tip="No fixed duration. Best for research, planning, or uncertain tasks.">Open-ended</button>
+                            <button type="button" class="typePill" data-type="timeboxed" data-tip="Fixed effort block. Great for focused sprints like 30-60 minutes.">Timeboxed</button>
+                        </div>
+                        <div class="durationWrap">
+                            <input type="number" class="durationInput hidden" min="5" step="5" placeholder="Est. mins" aria-label="Estimated minutes">
+                            <div class="durationChips">
+                                <button type="button" class="durationChip" data-minutes="15">15</button>
+                                <button type="button" class="durationChip" data-minutes="30">30</button>
+                                <button type="button" class="durationChip" data-minutes="45">45</button>
+                                <button type="button" class="durationChip" data-minutes="60">60</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deadlineContainer">
+                        <input type="datetime-local" class="deadlineInput" aria-label="Task deadline">
+                        <button class="calendarBtn" aria-label="Open calendar">
+                            <i class="fa-regular fa-calendar"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="deadlinePresets" aria-label="Quick deadline presets">
+                    <button class="deadlinePresetBtn" data-preset="hour2">In 2 hours</button>
+                    <button class="deadlinePresetBtn" data-preset="hour6">In 6 hours</button>
+                    <button class="deadlinePresetBtn" data-preset="eod">End of day</button>
+                    <button class="deadlinePresetBtn" data-preset="tomorrow">Tomorrow 9 AM</button>
+                    <button class="deadlinePresetBtn" data-preset="clear">No deadline</button>
+                </div>
+            </div>
+
+            <div class="urgencyAlert hidden" role="status" aria-live="polite">
+                <p class="urgencyAlertText">No urgent deadlines right now.</p>
+            </div>
+
+            <div class="priorityControls">
+                <div class="priorityHeaderRow">
+                    <label class="priorityToggleLabel" for="priorityToggle">
+                        <input type="checkbox" class="priorityToggle" id="priorityToggle">
+                        <span>Auto prioritize tasks</span>
+                    </label>
+                    <button class="sortOnceBtn" type="button" title="Apply smart order once while staying in manual mode">Suggest order once</button>
+                    <button class="alertToggleBtn" type="button">Popup alerts: Off</button>
+                </div>
+                <p class="priorityModeHint">Manual mode: drag and drop to customize order.</p>
+            </div>
+
+            <div class="taskViews" aria-label="Task views">
+                <button class="taskViewBtn active" data-view="all">All</button>
+                <button class="taskViewBtn" data-view="focus">Focus Now</button>
+                <button class="taskViewBtn" data-view="overdue">Overdue</button>
+                <button class="taskViewBtn" data-view="today">Due Today</button>
+                <button class="taskViewBtn" data-view="week">This Week</button>
+                <button class="taskViewBtn" data-view="completed">Completed</button>
             </div>
 
             <ul class="tasks">
