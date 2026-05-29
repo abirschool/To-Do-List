@@ -2633,6 +2633,135 @@ body::after{
     }
 }
 
+/* Final editor modal theming (prevents legacy light overrides) */
+.taskEditorOverlay{
+    background: rgba(6, 4, 24, 0.68);
+    backdrop-filter: blur(4px);
+}
+
+.taskEditorCard{
+    background:
+        linear-gradient(160deg, rgba(33, 22, 86, 0.96) 0%, rgba(24, 16, 67, 0.96) 52%, rgba(16, 11, 52, 0.97) 100%);
+    border: 2px solid rgba(178, 161, 255, 0.52);
+    box-shadow: 0 22px 52px rgba(8, 4, 30, 0.62), inset 0 1px 0 rgba(235, 229, 255, 0.09);
+}
+
+.taskEditorCard h2,
+.taskEditorCard label{
+    color: #f4efff;
+}
+
+.taskEditorCard .editorTextInput,
+.taskEditorCard .editorMatrixSelect,
+.taskEditorCard .editorTaskTypeSelect,
+.taskEditorCard .editorDifficultySelect,
+.taskEditorCard .editorDurationInput,
+.taskEditorCard .editorDeadlineInput{
+    background: linear-gradient(145deg, rgba(53, 39, 120, 0.95), rgba(35, 24, 92, 0.96));
+    border-color: rgba(185, 167, 255, 0.48);
+    color: #f7f3ff;
+}
+
+.taskEditorCard .editorTextInput::placeholder,
+.taskEditorCard .editorDurationInput::placeholder{
+    color: rgba(217, 206, 255, 0.72);
+}
+
+.taskEditorCard .editorTextInput:hover,
+.taskEditorCard .editorMatrixSelect:hover,
+.taskEditorCard .editorTaskTypeSelect:hover,
+.taskEditorCard .editorDifficultySelect:hover,
+.taskEditorCard .editorDurationInput:hover,
+.taskEditorCard .editorDeadlineInput:hover,
+.taskEditorCard .editorTextInput:focus,
+.taskEditorCard .editorMatrixSelect:focus,
+.taskEditorCard .editorTaskTypeSelect:focus,
+.taskEditorCard .editorDifficultySelect:focus,
+.taskEditorCard .editorDurationInput:focus,
+.taskEditorCard .editorDeadlineInput:focus,
+.taskEditorCard .editorTextInput:focus-visible,
+.taskEditorCard .editorMatrixSelect:focus-visible,
+.taskEditorCard .editorTaskTypeSelect:focus-visible,
+.taskEditorCard .editorDifficultySelect:focus-visible,
+.taskEditorCard .editorDurationInput:focus-visible,
+.taskEditorCard .editorDeadlineInput:focus-visible{
+    background: linear-gradient(145deg, rgba(61, 45, 133, 0.98), rgba(41, 29, 108, 0.99));
+    border-color: rgba(223, 213, 255, 0.74);
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(170, 143, 255, 0.3);
+}
+
+.taskEditorCard .editorDeadlineWrap:hover{
+    background: rgba(58, 42, 132, 0.56);
+    box-shadow: 0 0 0 3px rgba(171, 145, 255, 0.2);
+}
+
+.taskEditorCard .editorCancelBtn,
+.taskEditorCard .editorSaveBtn{
+    border-radius: 12px;
+    border: 2px solid rgba(194, 178, 255, 0.58);
+    transition: transform 0.16s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.taskEditorCard .editorCancelBtn{
+    background: linear-gradient(145deg, rgba(40, 51, 75, 0.95), rgba(27, 36, 58, 0.96));
+    color: #e6ecff;
+}
+
+.taskEditorCard .editorSaveBtn{
+    background: linear-gradient(120deg, rgba(202, 167, 255, 0.97), rgba(143, 150, 255, 0.98));
+    border-color: rgba(231, 222, 255, 0.9);
+    color: #120b30;
+}
+
+.taskEditorCard .editorCancelBtn:hover,
+.taskEditorCard .editorSaveBtn:hover{
+    transform: translateY(-1px);
+}
+
+.taskEditorCard .editorCancelBtn:hover{
+    background: linear-gradient(145deg, rgba(53, 66, 95, 0.98), rgba(36, 46, 73, 0.99));
+    color: #ffffff;
+    border-color: rgba(214, 201, 255, 0.78);
+}
+
+.taskEditorCard .editorSaveBtn:hover{
+    background: linear-gradient(120deg, rgba(212, 181, 255, 0.99), rgba(154, 161, 255, 0.99));
+    color: #10082b;
+    border-color: rgba(246, 240, 255, 0.96);
+    box-shadow: 0 6px 18px rgba(93, 67, 176, 0.38);
+}
+
+.taskEditorCard .editorCancelBtn:active,
+.taskEditorCard .editorSaveBtn:active{
+    transform: translateY(0);
+}
+
+.taskEditorCard .editorCancelBtn:focus-visible,
+.taskEditorCard .editorSaveBtn:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(174, 148, 255, 0.32);
+}
+
+/* Final dropdown popup theming */
+.matrixSelect,
+.difficultySelect,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect{
+    color-scheme: dark;
+}
+
+.matrixSelect option,
+.difficultySelect option,
+.editorMatrixSelect option,
+.editorTaskTypeSelect option,
+.editorDifficultySelect option{
+    background: #1a1143;
+    color: #f7f3ff;
+    font-weight: 600;
+}
+
 /* Task slot visual separation: active vs completed */
 .tasks li{
     background:
