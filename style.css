@@ -128,6 +128,16 @@ body{
     flex-wrap: nowrap;
 }
 
+.quickAddHint{
+    width: 92%;
+    margin-top: 8px;
+    color: #2f557f;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-align: left;
+}
+
 .taskInput{
     width: auto;
     flex: 1;
@@ -187,7 +197,16 @@ body{
     margin-top: 10px;
 }
 
+.optionsHint{
+    margin-bottom: 8px;
+    color: #355d87;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
 .taskDetailsPanel .matrixSelect,
+.taskDetailsPanel .difficultySelect,
 .taskDetailsPanel .durationInput,
 .taskDetailsPanel .deadlineInput{
     backdrop-filter: none;
@@ -216,7 +235,28 @@ body{
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
+.difficultySelect{
+    width: 100%;
+    height: 50px;
+    padding: 0 10px;
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(103, 159, 255, 0.7);
+    color: #1e1e1e;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
 .matrixSelect:hover{
+    border-color: rgba(72, 145, 255, 0.95);
+    background: rgba(246, 252, 255, 0.92);
+}
+
+.difficultySelect:hover{
     border-color: rgba(72, 145, 255, 0.95);
     background: rgba(246, 252, 255, 0.92);
 }
@@ -228,7 +268,20 @@ body{
     background: rgba(246, 252, 255, 0.98);
 }
 
+.difficultySelect:focus,
+.difficultySelect:focus-visible{
+    border-color: rgba(47, 143, 255, 1);
+    box-shadow: 0 0 0 4px rgba(47, 143, 255, 0.18);
+    background: rgba(246, 252, 255, 0.98);
+}
+
 .matrixSelect option{
+    background: #e8f2ff;
+    color: #17375f;
+    font-weight: 600;
+}
+
+.difficultySelect option{
     background: #e8f2ff;
     color: #17375f;
     font-weight: 600;
@@ -354,13 +407,28 @@ body{
 
 .deadlineContainer{
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     width: 100%;
     gap: 8px;
     cursor: pointer;
     border-radius: 12px;
     transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.deadlineTag{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: rgba(43, 30, 100, 0.82);
+    border: 1px solid rgba(189, 173, 255, 0.45);
+    color: #f1ecff;
 }
 
 .deadlineContainer:hover{
@@ -379,9 +447,16 @@ body{
     backdrop-filter: blur(10px);
     border: 2px solid rgba(103, 159, 255, 0.7);
     color: #1e1e1e;
+    color-scheme: dark;
     font-weight: 500;
     cursor: pointer;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.deadlineInput::-webkit-calendar-picker-indicator{
+    filter: invert(1) sepia(0.18) saturate(1.4) hue-rotate(196deg) brightness(1.2);
+    opacity: 0.9;
+    cursor: pointer;
 }
 
 .deadlineInput:hover{
@@ -908,6 +983,22 @@ body{
     opacity: 1;
 }
 
+.tasks.drag-active li *{
+    pointer-events: none;
+}
+
+/* Premium gradient overdue alert */
+.urgencyAlert.urgency-overdue{
+    background: linear-gradient(135deg, rgba(255, 115, 140, 0.24) 0%, rgba(214, 90, 122, 0.28) 35%, rgba(132, 74, 171, 0.34) 100%);
+    border-color: rgba(255, 148, 169, 0.85);
+    box-shadow: 0 8px 24px rgba(112, 42, 86, 0.35), inset 0 1px 0 rgba(255, 220, 228, 0.28);
+}
+
+.urgencyAlert.urgency-overdue .urgencyAlertText{
+    color: #ffe9ef;
+    text-shadow: 0 1px 0 rgba(76, 24, 47, 0.45);
+}
+
 .taskMain{
     display: flex;
     align-items: center;
@@ -961,6 +1052,47 @@ body{
     background: #eaf0ff;
     border-color: #cbd8ff;
     color: #2d468d;
+}
+
+.difficultyBadge{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.difficulty-1{
+    background: #edf9ee;
+    border-color: #cdeccd;
+    color: #2c6b35;
+}
+
+.difficulty-2{
+    background: #e8f6ff;
+    border-color: #c6e5fb;
+    color: #2b5e87;
+}
+
+.difficulty-3{
+    background: #fff5df;
+    border-color: #f3ddb1;
+    color: #8a6112;
+}
+
+.difficulty-4{
+    background: #ffeada;
+    border-color: #f7caad;
+    color: #8c4217;
+}
+
+.difficulty-5{
+    background: #ffe2e2;
+    border-color: #f3bcbc;
+    color: #8b2222;
 }
 
 .emptyTasksMsg{
@@ -1192,6 +1324,7 @@ body{
 }
 
 .editorTaskTypeSelect,
+.editorDifficultySelect,
 .editorDurationInput{
     width: 100%;
     height: 44px;
@@ -1222,6 +1355,7 @@ body{
 }
 
 .editorTaskTypeSelect:focus,
+.editorDifficultySelect:focus,
 .editorDurationInput:focus{
     border-color: rgba(47, 143, 255, 1);
     box-shadow: 0 0 0 4px rgba(47, 143, 255, 0.16);
@@ -1230,7 +1364,8 @@ body{
 
 .editorMatrixSelect,
 .editorDeadlineInput,
-.editorTaskTypeSelect{
+.editorTaskTypeSelect,
+.editorDifficultySelect{
     cursor: pointer;
 }
 
@@ -1356,6 +1491,1191 @@ body{
         padding-right: 2px;
     }
 }
+
+/* Premium dark aesthetic overrides */
+:root{
+    --lux-bg-1: #080a10;
+    --lux-bg-2: #0f1420;
+    --lux-panel: rgba(13, 18, 30, 0.82);
+    --lux-panel-soft: rgba(19, 26, 40, 0.72);
+    --lux-border: rgba(216, 183, 120, 0.42);
+    --lux-border-soft: rgba(216, 183, 120, 0.24);
+    --lux-text: #f3f0ea;
+    --lux-muted: #b8b3a7;
+    --lux-accent: #d7b778;
+    --lux-accent-2: #8ec5ff;
+}
+
+body{
+    font-family: 'Inter', sans-serif;
+    color: var(--lux-text);
+    background:
+        radial-gradient(1100px 560px at 12% 8%, rgba(215, 183, 120, 0.14), transparent 60%),
+        radial-gradient(900px 520px at 88% 92%, rgba(87, 126, 190, 0.17), transparent 62%),
+        linear-gradient(160deg, var(--lux-bg-1), var(--lux-bg-2));
+}
+
+.container{
+    background: linear-gradient(170deg, rgba(19, 25, 38, 0.9), rgba(9, 14, 24, 0.9));
+    border: 1px solid var(--lux-border);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.title{
+    font-family: 'Playfair Display', serif;
+    color: #f6f2ea;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.activityTitle,
+.motivatorText{
+    font-family: 'Playfair Display', serif;
+    color: #f2ebe0;
+}
+
+.activitySummary,
+.quickAddHint,
+.optionsHint,
+.priorityModeHint{
+    color: var(--lux-muted);
+}
+
+.motivatorContainer,
+.activityPanel,
+.taskDetailsPanel.open,
+.urgencyAlert,
+.priorityControls{
+    background: var(--lux-panel-soft);
+    border-color: var(--lux-border-soft);
+}
+
+.progressBarContainer{
+    background: rgba(7, 11, 20, 0.95);
+    border-color: rgba(142, 197, 255, 0.5);
+}
+
+.progressBar{
+    background: linear-gradient(90deg, #6da6e8, #d7b778 85%);
+}
+
+.taskAmountContainer,
+.addBtn,
+.calendarBtn,
+.taskButtons i,
+.checkBtn i{
+    background: #0c131f;
+    border-color: rgba(142, 197, 255, 0.5);
+}
+
+.taskAmount,
+.addBtn i,
+.calendarBtn i,
+.taskButtons i,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn{
+    color: #d6e7ff;
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorDeadlineInput{
+    background: rgba(14, 21, 33, 0.93);
+    color: var(--lux-text);
+    border-color: rgba(142, 197, 255, 0.38);
+}
+
+.taskInput::placeholder,
+.durationInput::placeholder,
+.editorTextInput::placeholder,
+.editorDurationInput::placeholder{
+    color: rgba(184, 179, 167, 0.74);
+}
+
+.matrixSelect option,
+.difficultySelect option,
+.editorMatrixSelect option{
+    background: #121b2a;
+    color: #f1ebe0;
+}
+
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.deadlinePresetBtn{
+    background: rgba(18, 28, 43, 0.88);
+    color: #dbe9fb;
+    border-color: rgba(142, 197, 255, 0.3);
+}
+
+.typePill.active,
+.durationChip.active,
+.taskViewBtn.active,
+.detailsToggleBtn[aria-expanded="true"]{
+    background: linear-gradient(100deg, rgba(215, 183, 120, 0.88), rgba(114, 161, 224, 0.9));
+    border-color: rgba(232, 213, 178, 0.7);
+    color: #0a111b;
+}
+
+.tasks li{
+    background: rgba(16, 23, 35, 0.88);
+    border-color: rgba(142, 197, 255, 0.28);
+}
+
+.taskText{
+    color: var(--lux-text);
+}
+
+.emptyTasksMsg{
+    background: rgba(16, 25, 39, 0.8);
+    border-color: rgba(142, 197, 255, 0.28);
+    color: var(--lux-muted);
+}
+
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorCancelBtn,
+.editorSaveBtn,
+.editorCalendarBtn{
+    font-family: 'Inter', sans-serif;
+}
+
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorDeadlineInput{
+    background: rgba(14, 21, 33, 0.96);
+    color: var(--lux-text);
+}
+
+.editorCancelBtn{
+    background: rgba(20, 30, 45, 0.95);
+    border-color: rgba(142, 197, 255, 0.34);
+    color: #dce8fb;
+}
+
+.editorSaveBtn{
+    background: linear-gradient(96deg, rgba(215, 183, 120, 0.9), rgba(113, 161, 225, 0.92));
+    border-color: rgba(230, 211, 173, 0.8);
+    color: #0a111b;
+}
+
+/* Readability + animated gradient orbs tune */
+:root{
+    --lux-bg-1: #070b14;
+    --lux-bg-2: #111a2a;
+    --lux-panel: rgba(16, 24, 38, 0.9);
+    --lux-panel-soft: rgba(19, 29, 46, 0.84);
+    --lux-border: rgba(143, 191, 255, 0.45);
+    --lux-border-soft: rgba(143, 191, 255, 0.3);
+    --lux-text: #f7fbff;
+    --lux-muted: #d6e3f5;
+}
+
+body{
+    position: relative;
+    overflow-x: hidden;
+    background: linear-gradient(160deg, var(--lux-bg-1), var(--lux-bg-2));
+}
+
+body::before,
+body::after{
+    content: '';
+    position: fixed;
+    inset: auto;
+    width: 74vmax;
+    height: 74vmax;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.42;
+    will-change: transform;
+}
+
+body::before{
+    top: -24vmax;
+    left: -24vmax;
+    background:
+        radial-gradient(circle at 28% 30%, rgba(245, 247, 252, 0.9), rgba(194, 201, 214, 0.42) 38%, rgba(0, 0, 0, 0) 64%),
+        radial-gradient(circle at 70% 58%, rgba(205, 211, 223, 0.82), rgba(141, 149, 166, 0.34) 36%, rgba(0, 0, 0, 0) 66%);
+    animation: orbFloatA 28s ease-in-out infinite alternate;
+}
+
+body::after{
+    right: -24vmax;
+    bottom: -24vmax;
+    background:
+        radial-gradient(circle at 35% 42%, rgba(234, 239, 247, 0.88), rgba(178, 186, 200, 0.4) 37%, rgba(0, 0, 0, 0) 66%),
+        radial-gradient(circle at 74% 26%, rgba(212, 219, 231, 0.78), rgba(131, 140, 157, 0.3) 34%, rgba(0, 0, 0, 0) 67%);
+    animation: orbFloatB 32s ease-in-out infinite alternate;
+}
+
+@keyframes orbFloatA {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    25% { transform: translate3d(12vmax, 6vmax, 0) scale(1.06); }
+    50% { transform: translate3d(20vmax, 18vmax, 0) scale(1.12); }
+    75% { transform: translate3d(4vmax, 28vmax, 0) scale(0.98); }
+    100% { transform: translate3d(-8vmax, 16vmax, 0) scale(0.92); }
+}
+
+@keyframes orbFloatB {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    25% { transform: translate3d(-14vmax, -5vmax, 0) scale(1.07); }
+    50% { transform: translate3d(-24vmax, -18vmax, 0) scale(1.11); }
+    75% { transform: translate3d(-8vmax, -30vmax, 0) scale(1); }
+    100% { transform: translate3d(6vmax, -16vmax, 0) scale(0.93); }
+}
+
+.container{
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(170deg, rgba(14, 22, 36, 0.93), rgba(9, 14, 24, 0.93));
+    border-color: rgba(148, 199, 255, 0.45);
+}
+
+.activitySummary,
+.quickAddHint,
+.optionsHint,
+.priorityModeHint,
+.activityDayLabel,
+.activityMonthLabel,
+.urgencyAlertText,
+.priorityToggleLabel span{
+    color: #dbe8fa;
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorDeadlineInput,
+.taskViewBtn,
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.deadlinePresetBtn{
+    border-color: rgba(138, 194, 255, 0.52);
+    color: #eef5ff;
+}
+
+.taskInput::placeholder,
+.durationInput::placeholder,
+.editorTextInput::placeholder,
+.editorDurationInput::placeholder{
+    color: rgba(214, 230, 247, 0.78);
+}
+
+.tasks li{
+    background: rgba(15, 23, 38, 0.94);
+    border-color: rgba(138, 194, 255, 0.4);
+}
+
+.matrixBadge,
+.effortBadge,
+.difficultyBadge,
+.deadlineBadge,
+.countdownBadge{
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.checkBtn i,
+.taskButtons i,
+.calendarBtn,
+.addBtn{
+    border-color: rgba(138, 194, 255, 0.66);
+}
+
+/* Final monochrome minimalism refinement */
+:root{
+    --mono-bg-1: #101214;
+    --mono-bg-2: #1a1d22;
+    --mono-surface: rgba(17, 20, 25, 0.9);
+    --mono-surface-soft: rgba(22, 26, 33, 0.86);
+    --mono-border: rgba(192, 196, 204, 0.34);
+    --mono-border-strong: rgba(214, 218, 226, 0.48);
+    --mono-text: #eceff4;
+    --mono-muted: #c7ced9;
+}
+
+body{
+    color: var(--mono-text);
+    background: linear-gradient(155deg, var(--mono-bg-1), var(--mono-bg-2));
+}
+
+body::before{
+    background: radial-gradient(circle at 30% 30%, rgba(245, 247, 252, 0.38), rgba(188, 194, 206, 0.22) 44%, rgba(0, 0, 0, 0) 74%);
+    opacity: 0.22;
+    animation: orbFloatA 30s ease-in-out infinite alternate;
+}
+
+body::after{
+    background: radial-gradient(circle at 40% 40%, rgba(222, 227, 236, 0.34), rgba(156, 164, 180, 0.18) 46%, rgba(0, 0, 0, 0) 76%);
+    opacity: 0.2;
+    animation: orbFloatB 34s ease-in-out infinite alternate;
+}
+
+.container{
+    background: linear-gradient(170deg, rgba(18, 22, 28, 0.94), rgba(12, 15, 20, 0.94));
+    border-color: var(--mono-border-strong);
+    box-shadow: 0 26px 62px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.title,
+.activityTitle,
+.motivatorText,
+.taskText,
+.taskAmount,
+.priorityToggleLabel span,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.typePill,
+.durationChip,
+.deadlinePresetBtn,
+.addBtn i,
+.calendarBtn i,
+.taskButtons i{
+    color: var(--mono-text);
+}
+
+.activitySummary,
+.quickAddHint,
+.optionsHint,
+.priorityModeHint,
+.activityDayLabel,
+.activityMonthLabel,
+.urgencyAlertText{
+    color: var(--mono-muted);
+}
+
+.motivatorContainer,
+.activityPanel,
+.taskDetailsPanel.open,
+.urgencyAlert,
+.priorityControls,
+.tasks li{
+    background: var(--mono-surface-soft);
+    border-color: var(--mono-border);
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorDeadlineInput,
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.deadlinePresetBtn{
+    background: var(--mono-surface);
+    border-color: var(--mono-border);
+    color: var(--mono-text);
+}
+
+.taskInput::placeholder,
+.durationInput::placeholder,
+.editorTextInput::placeholder,
+.editorDurationInput::placeholder{
+    color: rgba(199, 206, 217, 0.76);
+}
+
+.matrixSelect:hover,
+.difficultySelect:hover,
+.deadlineInput:hover,
+.typePill:hover,
+.durationChip:hover,
+.detailsToggleBtn:hover,
+.sortOnceBtn:hover:not(:disabled),
+.alertToggleBtn:hover,
+.taskViewBtn:hover,
+.deadlinePresetBtn:hover{
+    background: rgba(35, 40, 49, 0.96);
+    border-color: var(--mono-border-strong);
+    color: #ffffff;
+}
+
+.matrixSelect:focus,
+.matrixSelect:focus-visible,
+.difficultySelect:focus,
+.difficultySelect:focus-visible,
+.deadlineInput:focus,
+.deadlineInput:focus-visible,
+.taskInput:focus,
+.taskInput:focus-visible,
+.editorTextInput:focus,
+.editorMatrixSelect:focus,
+.editorDeadlineInput:focus,
+.editorTaskTypeSelect:focus,
+.editorDifficultySelect:focus,
+.editorDurationInput:focus{
+    background: rgba(35, 40, 49, 0.98);
+    color: #ffffff;
+    border-color: rgba(238, 241, 247, 0.66);
+    box-shadow: 0 0 0 3px rgba(238, 241, 247, 0.14);
+}
+
+.typePill.active,
+.durationChip.active,
+.taskViewBtn.active,
+.detailsToggleBtn[aria-expanded="true"],
+.sortOnceBtn:active,
+.alertToggleBtn.enabled{
+    background: linear-gradient(120deg, #f0f2f5, #d8dde6);
+    border-color: #f1f4f8;
+    color: #12151a;
+}
+
+.addBtn,
+.calendarBtn,
+.taskButtons i,
+.checkBtn i,
+.taskAmountContainer,
+.editorCalendarBtn{
+    background: #13171d;
+    border-color: var(--mono-border-strong);
+}
+
+.taskButtons i:hover,
+.checkBtn i:hover,
+.calendarBtn:hover,
+.addBtn:hover,
+.editorCalendarBtn:hover{
+    background: #21262f;
+    color: #ffffff;
+}
+
+.matrixSelect option,
+.difficultySelect option,
+.editorMatrixSelect option{
+    background: #171b22;
+    color: #edf1f6;
+}
+
+/* Keep semantic color cues for status badges */
+.matrix-do{ background: #ffd8d3; border-color: #ffb5ab; color: #7f1f17; }
+.matrix-schedule{ background: #dde7ff; border-color: #becdfa; color: #2c3d7c; }
+.matrix-delegate{ background: #ffe8c9; border-color: #f6c78a; color: #815005; }
+.matrix-eliminate{ background: #dbe8df; border-color: #bfd3c5; color: #2e5540; }
+
+.difficulty-1{ background: #dbf1df; border-color: #bce0c2; color: #275e32; }
+.difficulty-2{ background: #d8ebff; border-color: #b7d8f5; color: #1f527c; }
+.difficulty-3{ background: #fff0cd; border-color: #efd59c; color: #7e5a13; }
+.difficulty-4{ background: #ffdfc8; border-color: #f0bfa0; color: #7b3c16; }
+.difficulty-5{ background: #ffd6d6; border-color: #f2b1b1; color: #7f2121; }
+
+.deadline-none, .countdown-none{ background: #e4e8ef; border-color: #c9d1dd; color: #405470; }
+.deadline-normal, .countdown-normal{ background: #dcedff; border-color: #b9d5f5; color: #244f83; }
+.deadline-soon, .countdown-soon{ background: #ffe9c9; border-color: #f2c78b; color: #7e4f0c; }
+.deadline-critical, .countdown-critical{ background: #ffd9bf; border-color: #f0b187; color: #86400f; }
+.deadline-overdue, .countdown-overdue{ background: #ffd2d2; border-color: #efabab; color: #8a1e1e; }
+
+/* Premium violet gradient mode */
+:root{
+    --violet-bg-1: #050225;
+    --violet-bg-2: #0a0537;
+    --violet-bg-3: #140a46;
+    --violet-surface: rgba(20, 13, 56, 0.82);
+    --violet-surface-soft: rgba(24, 16, 66, 0.72);
+    --violet-border: rgba(170, 152, 255, 0.44);
+    --violet-border-soft: rgba(170, 152, 255, 0.28);
+    --violet-text: #f6f4ff;
+    --violet-muted: #d7d0ff;
+    --violet-accent: #b58bff;
+    --violet-accent-2: #7f86ff;
+}
+
+html{
+    position: relative;
+    background: linear-gradient(150deg, var(--violet-bg-1), var(--violet-bg-2), var(--violet-bg-3));
+}
+
+html::before,
+html::after{
+    content: '';
+    position: fixed;
+    width: 62vmax;
+    height: 62vmax;
+    border-radius: 50%;
+    filter: blur(72px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.46;
+    will-change: transform;
+}
+
+html::before{
+    top: -28vmax;
+    right: -20vmax;
+    background: radial-gradient(circle at 36% 32%, rgba(174, 140, 255, 0.95), rgba(98, 79, 228, 0.42) 48%, rgba(0, 0, 0, 0) 72%);
+    animation: orbFloatC 26s ease-in-out infinite alternate;
+}
+
+html::after{
+    left: -24vmax;
+    bottom: -26vmax;
+    background: radial-gradient(circle at 42% 42%, rgba(125, 154, 255, 0.9), rgba(95, 77, 225, 0.36) 46%, rgba(0, 0, 0, 0) 74%);
+    animation: orbFloatD 30s ease-in-out infinite alternate;
+}
+
+body{
+    color: var(--violet-text);
+    background: linear-gradient(150deg, var(--violet-bg-1), var(--violet-bg-2), var(--violet-bg-3));
+}
+
+body::before,
+body::after{
+    opacity: 0.48;
+}
+
+body::before{
+    top: -26vmax;
+    left: -22vmax;
+    background:
+        radial-gradient(circle at 28% 30%, rgba(179, 144, 255, 0.9), rgba(89, 76, 222, 0.46) 38%, rgba(0, 0, 0, 0) 66%),
+        radial-gradient(circle at 74% 56%, rgba(147, 165, 255, 0.78), rgba(76, 93, 214, 0.34) 36%, rgba(0, 0, 0, 0) 67%);
+    animation: orbFloatA 24s ease-in-out infinite alternate;
+}
+
+body::after{
+    right: -22vmax;
+    bottom: -24vmax;
+    background:
+        radial-gradient(circle at 38% 44%, rgba(198, 150, 255, 0.88), rgba(109, 85, 232, 0.42) 37%, rgba(0, 0, 0, 0) 66%),
+        radial-gradient(circle at 72% 28%, rgba(134, 159, 255, 0.72), rgba(77, 95, 214, 0.28) 34%, rgba(0, 0, 0, 0) 68%);
+    animation: orbFloatB 32s ease-in-out infinite alternate;
+}
+
+@keyframes orbFloatC {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-16vmax, 8vmax, 0) scale(1.09); }
+    100% { transform: translate3d(-6vmax, 22vmax, 0) scale(0.94); }
+}
+
+@keyframes orbFloatD {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(17vmax, -10vmax, 0) scale(1.12); }
+    100% { transform: translate3d(8vmax, -22vmax, 0) scale(0.93); }
+}
+
+.container{
+    background: linear-gradient(170deg, rgba(22, 14, 62, 0.9), rgba(12, 8, 44, 0.9));
+    border-color: var(--violet-border);
+    box-shadow: 0 28px 68px rgba(4, 3, 24, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.title,
+.activityTitle,
+.motivatorText,
+.taskText,
+.taskAmount,
+.priorityToggleLabel span,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.typePill,
+.durationChip,
+.deadlinePresetBtn,
+.addBtn i,
+.calendarBtn i,
+.taskButtons i{
+    color: var(--violet-text);
+}
+
+.activitySummary,
+.quickAddHint,
+.optionsHint,
+.priorityModeHint,
+.activityDayLabel,
+.activityMonthLabel,
+.urgencyAlertText{
+    color: var(--violet-muted);
+}
+
+.motivatorContainer,
+.activityPanel,
+.taskDetailsPanel.open,
+.urgencyAlert,
+.priorityControls,
+.tasks li{
+    background: var(--violet-surface-soft);
+    border-color: var(--violet-border-soft);
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorDeadlineInput,
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.deadlinePresetBtn{
+    background: var(--violet-surface);
+    border-color: var(--violet-border-soft);
+    color: var(--violet-text);
+}
+
+.taskInput::placeholder,
+.durationInput::placeholder,
+.editorTextInput::placeholder,
+.editorDurationInput::placeholder{
+    color: rgba(215, 208, 255, 0.76);
+}
+
+.matrixSelect:hover,
+.difficultySelect:hover,
+.deadlineInput:hover,
+.typePill:hover,
+.durationChip:hover,
+.detailsToggleBtn:hover,
+.sortOnceBtn:hover:not(:disabled),
+.alertToggleBtn:hover,
+.taskViewBtn:hover,
+.deadlinePresetBtn:hover{
+    background: rgba(42, 30, 100, 0.96);
+    border-color: rgba(205, 194, 255, 0.62);
+    color: #ffffff;
+}
+
+.matrixSelect:focus,
+.matrixSelect:focus-visible,
+.difficultySelect:focus,
+.difficultySelect:focus-visible,
+.deadlineInput:focus,
+.deadlineInput:focus-visible,
+.taskInput:focus,
+.taskInput:focus-visible,
+.editorTextInput:focus,
+.editorMatrixSelect:focus,
+.editorDeadlineInput:focus,
+.editorTaskTypeSelect:focus,
+.editorDifficultySelect:focus,
+.editorDurationInput:focus{
+    background: rgba(45, 33, 106, 0.98);
+    color: #ffffff;
+    border-color: rgba(225, 217, 255, 0.72);
+    box-shadow: 0 0 0 3px rgba(171, 145, 255, 0.3);
+}
+
+.typePill.active,
+.durationChip.active,
+.taskViewBtn.active,
+.detailsToggleBtn[aria-expanded="true"],
+.sortOnceBtn:active,
+.alertToggleBtn.enabled{
+    background: linear-gradient(120deg, #b58bff, #7f86ff);
+    border-color: rgba(232, 225, 255, 0.8);
+    color: #fdfcff;
+}
+
+.progressBarContainer{
+    background: rgba(10, 7, 33, 0.95);
+    border-color: rgba(180, 164, 255, 0.56);
+}
+
+.progressBar{
+    background: linear-gradient(90deg, #7f86ff, #b58bff 60%, #d2a0ff 100%);
+}
+
+.addBtn,
+.calendarBtn,
+.taskButtons i,
+.checkBtn i,
+.taskAmountContainer,
+.editorCalendarBtn{
+    background: #1a123f;
+    border-color: rgba(188, 173, 255, 0.68);
+}
+
+.taskButtons i:hover,
+.checkBtn i:hover,
+.calendarBtn:hover,
+.addBtn:hover,
+.editorCalendarBtn:hover{
+    background: #2b1f69;
+    color: #ffffff;
+}
+
+.urgencyAlert.urgency-soon{
+    background: #ffe6bf;
+    border-color: #f1bf71;
+}
+
+.urgencyAlert.urgency-critical{
+    background: #ffd6be;
+    border-color: #efad81;
+}
+
+.urgencyAlert.urgency-overdue{
+    background: linear-gradient(135deg, #ffd7d7 0%, #ffc9c9 52%, #ffbdbd 100%);
+    border-color: #e98f8f;
+}
+
+.urgencyAlert.urgency-soon .urgencyAlertText{
+    color: #6f470d;
+}
+
+.urgencyAlert.urgency-critical .urgencyAlertText{
+    color: #7b370f;
+}
+
+.urgencyAlert.urgency-overdue .urgencyAlertText{
+    color: #7c1d1d;
+}
+
+.tasks li.dragging{
+    background: linear-gradient(165deg, rgba(66, 49, 145, 0.94), rgba(44, 31, 108, 0.95));
+    border-color: rgba(204, 191, 255, 0.8);
+    box-shadow: 0 14px 28px rgba(17, 10, 48, 0.55);
+}
+
+.tasks li.dragging .taskText,
+.tasks li.dragging .taskMeta,
+.tasks li.dragging .taskButtons i,
+.tasks li.dragging .checkBtn i{
+    color: #ffffff;
+}
+
+.tasks li.drag-over-slot{
+    background: linear-gradient(165deg, rgba(74, 55, 162, 0.96), rgba(49, 35, 121, 0.96));
+    border-color: rgba(216, 204, 255, 0.86);
+    box-shadow: 0 0 0 4px rgba(181, 156, 255, 0.28), 0 12px 24px rgba(22, 12, 58, 0.52);
+}
+
+.matrixSelect option,
+.difficultySelect option,
+.editorMatrixSelect option{
+    background: #191040;
+    color: #f7f4ff;
+}
+
+@media (prefers-reduced-motion: reduce){
+    html::before,
+    html::after,
+    body::before,
+    body::after{
+        animation: none;
+    }
+}
+
+/* Gradient-everywhere pass */
+.container{
+    background:
+        radial-gradient(140% 120% at 0% 0%, rgba(181, 133, 255, 0.24), transparent 56%),
+        radial-gradient(120% 120% at 100% 100%, rgba(124, 141, 255, 0.22), transparent 52%),
+        linear-gradient(165deg, rgba(35, 22, 92, 0.95), rgba(20, 12, 64, 0.94) 48%, rgba(12, 8, 44, 0.95));
+}
+
+.to-doList{
+    background:
+        radial-gradient(95% 80% at 8% 0%, rgba(173, 127, 255, 0.16), transparent 58%),
+        radial-gradient(95% 80% at 95% 100%, rgba(124, 142, 255, 0.14), transparent 62%);
+}
+
+.motivatorContainer,
+.activityPanel,
+.taskDetailsPanel.open,
+.urgencyAlert,
+.priorityControls,
+.tasks li{
+    background:
+        linear-gradient(155deg, rgba(50, 34, 118, 0.84), rgba(30, 21, 83, 0.88) 52%, rgba(22, 14, 66, 0.9));
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.editorTextInput,
+.editorMatrixSelect,
+.editorTaskTypeSelect,
+.editorDifficultySelect,
+.editorDurationInput,
+.editorDeadlineInput,
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.deadlinePresetBtn{
+    background:
+        linear-gradient(145deg, rgba(49, 34, 117, 0.92), rgba(32, 22, 86, 0.94));
+}
+
+.addBtn,
+.calendarBtn,
+.taskButtons i,
+.checkBtn i,
+.taskAmountContainer,
+.editorCalendarBtn{
+    background:
+        linear-gradient(145deg, rgba(63, 46, 140, 0.94), rgba(36, 25, 95, 0.96));
+}
+
+.typePill.active,
+.durationChip.active,
+.taskViewBtn.active,
+.detailsToggleBtn[aria-expanded="true"],
+.sortOnceBtn:active,
+.alertToggleBtn.enabled{
+    background:
+        linear-gradient(120deg, rgba(193, 152, 255, 0.98), rgba(132, 140, 255, 0.98));
+}
+
+.matrixBadge,
+.difficultyBadge,
+.effortBadge,
+.deadlineBadge,
+.countdownBadge{
+    background:
+        linear-gradient(135deg, rgba(243, 236, 255, 0.98), rgba(222, 231, 255, 0.98));
+}
+
+.urgencyAlert.urgency-soon{
+    background:
+        linear-gradient(135deg, rgba(255, 229, 168, 0.96), rgba(255, 205, 133, 0.96));
+}
+
+.urgencyAlert.urgency-critical{
+    background:
+        linear-gradient(135deg, rgba(255, 205, 164, 0.96), rgba(255, 174, 128, 0.96));
+}
+
+.urgencyAlert.urgency-overdue{
+    background:
+        linear-gradient(135deg, rgba(255, 114, 114, 0.98), rgba(226, 72, 72, 0.98) 52%, rgba(126, 22, 50, 0.98));
+    border-color: rgba(255, 164, 164, 0.92);
+    box-shadow: 0 8px 22px rgba(120, 12, 28, 0.42), inset 0 1px 0 rgba(255, 214, 214, 0.28);
+}
+
+.urgencyAlert.urgency-overdue .urgencyAlertText{
+    color: #fff1f1;
+    text-shadow: 0 1px 0 rgba(92, 8, 22, 0.55);
+}
+
+.checkBtn i{
+    color: rgba(198, 183, 255, 0.25);
+    border-color: rgba(188, 173, 255, 0.68);
+}
+
+.tasks li.completed .checkBtn i{
+    color: #f3edff;
+    background: linear-gradient(140deg, rgba(180, 132, 255, 0.98), rgba(122, 128, 255, 0.98));
+    border-color: rgba(229, 218, 255, 0.85);
+    opacity: 1;
+}
+
+/* Wrapper and panel gradient polish */
+.container{
+    background:
+        linear-gradient(165deg, rgba(39, 24, 96, 0.94) 0%, rgba(22, 14, 62, 0.93) 38%, rgba(12, 8, 44, 0.94) 100%);
+}
+
+.to-doList{
+    background:
+        radial-gradient(90% 80% at 10% 0%, rgba(173, 128, 255, 0.12), transparent 55%),
+        radial-gradient(90% 80% at 95% 100%, rgba(123, 139, 255, 0.1), transparent 58%);
+}
+
+.motivatorContainer,
+.activityPanel,
+.taskDetailsPanel.open,
+.urgencyAlert,
+.priorityControls,
+.tasks li{
+    background:
+        linear-gradient(160deg, rgba(34, 22, 87, 0.82) 0%, rgba(23, 16, 66, 0.86) 52%, rgba(17, 11, 53, 0.88) 100%);
+}
+
+.taskInput,
+.matrixSelect,
+.difficultySelect,
+.durationInput,
+.deadlineInput,
+.typePill,
+.durationChip,
+.detailsToggleBtn,
+.sortOnceBtn,
+.alertToggleBtn,
+.taskViewBtn,
+.deadlinePresetBtn{
+    background:
+        linear-gradient(145deg, rgba(39, 27, 92, 0.9), rgba(27, 18, 72, 0.9));
+}
+
+/* Calmer badge palette: neutral by default, color only for urgency */
+.matrixBadge,
+.difficultyBadge,
+.effortBadge,
+.deadlineBadge,
+.countdownBadge{
+    background: rgba(233, 238, 255, 0.92);
+    color: #2f3f66;
+    border: 1px solid rgba(184, 198, 232, 0.95);
+}
+
+.matrix-do,
+.matrix-schedule,
+.matrix-delegate,
+.matrix-eliminate,
+.difficulty-1,
+.difficulty-2,
+.difficulty-3,
+.difficulty-4,
+.difficulty-5,
+.deadline-none,
+.countdown-none,
+.deadline-normal,
+.countdown-normal{
+    background: rgba(233, 238, 255, 0.92);
+    color: #2f3f66;
+    border: 1px solid rgba(184, 198, 232, 0.95);
+}
+
+.deadline-soon,
+.countdown-soon{
+    background: #ffeccd;
+    color: #7d4f0e;
+    border-color: #f3ca8e;
+}
+
+.deadline-critical,
+.countdown-critical{
+    background: #ffdcca;
+    color: #884315;
+    border-color: #efb48f;
+}
+
+.deadline-overdue,
+.countdown-overdue{
+    background: #ffd6d6;
+    color: #8b2020;
+    border-color: #efaaaa;
+}
+
+/* Final control icon clarity */
+.matrixSelect,
+.difficultySelect{
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: auto;
+    padding-right: 12px;
+}
+
+.deadlineInput{
+    color-scheme: dark;
+}
+
+.deadlineInput::-webkit-calendar-picker-indicator{
+    filter: invert(90%) sepia(22%) saturate(315%) hue-rotate(205deg) brightness(108%) contrast(102%) !important;
+    opacity: 0.92;
+    cursor: pointer;
+}
+
+.deadlineInput::-webkit-calendar-picker-indicator:hover{
+    opacity: 1;
+}
+
+/* Final compact UX refinements */
+.durationWrap{
+    gap: 10px;
+}
+
+.durationInput{
+    width: 132px;
+    min-width: 132px;
+}
+
+.durationChips{
+    gap: 8px;
+}
+
+.durationChip{
+    min-width: 48px;
+    text-align: center;
+}
+
+.priorityToggleLabel{
+    gap: 10px;
+}
+
+.priorityToggle{
+    appearance: none;
+    -webkit-appearance: none;
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 167, 255, 0.62);
+    background: linear-gradient(135deg, rgba(50, 35, 115, 0.92), rgba(33, 23, 82, 0.94));
+    cursor: pointer;
+    position: relative;
+    display: inline-grid;
+    align-items: center;
+    padding: 2px;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.priorityToggle::before{
+    content: '';
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(140deg, #f5f0ff, #e1d3ff);
+    box-shadow: 0 2px 6px rgba(11, 7, 34, 0.45);
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+}
+
+.priorityToggle:checked{
+    background: linear-gradient(120deg, rgba(182, 141, 255, 0.95), rgba(126, 138, 255, 0.95));
+    border-color: rgba(232, 225, 255, 0.82);
+    box-shadow: 0 0 0 3px rgba(173, 145, 255, 0.26);
+}
+
+.priorityToggle:checked::before{
+    transform: translateX(20px);
+    background: linear-gradient(140deg, #ffffff, #f1e8ff);
+}
+
+.priorityToggle:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(173, 145, 255, 0.3);
+}
+
+/* Overdue notification badge */
+.taskViewBtn[data-view="overdue"]{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.overdueCountBadge{
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+    color: #fff4ed;
+    background: linear-gradient(135deg, #ff864d, #ff4b31 58%, #b9152b);
+    border: 1px solid rgba(255, 199, 173, 0.9);
+    box-shadow: 0 3px 10px rgba(167, 35, 23, 0.42), inset 0 1px 0 rgba(255, 230, 210, 0.4);
+}
+
+.overdueCountBadge.visible{
+    display: inline-flex;
+    animation: overdueBadgePulse 1.9s ease-in-out infinite;
+}
+
+.taskViewBtn.active .overdueCountBadge{
+    background: linear-gradient(135deg, #ff9967, #ff5a3b 60%, #c31c35);
+    border-color: rgba(255, 224, 206, 0.95);
+}
+
+@keyframes overdueBadgePulse{
+    0%, 100%{
+        transform: scale(1);
+        box-shadow: 0 3px 10px rgba(167, 35, 23, 0.42), inset 0 1px 0 rgba(255, 230, 210, 0.4);
+    }
+    50%{
+        transform: scale(1.08);
+        box-shadow: 0 5px 14px rgba(188, 36, 20, 0.5), inset 0 1px 0 rgba(255, 240, 228, 0.48);
+    }
+}
+
+/* Task slot visual separation: active vs completed */
+.tasks li{
+    background:
+        linear-gradient(160deg, rgba(47, 31, 111, 0.88) 0%, rgba(30, 21, 86, 0.9) 52%, rgba(22, 15, 68, 0.92) 100%);
+    border-color: rgba(168, 154, 243, 0.62);
+}
+
+.tasks li.completed{
+    background:
+        linear-gradient(160deg, rgba(33, 27, 70, 0.8) 0%, rgba(26, 21, 57, 0.82) 52%, rgba(21, 18, 46, 0.84) 100%);
+    border-color: rgba(137, 136, 175, 0.48);
+    box-shadow: inset 0 1px 0 rgba(221, 214, 255, 0.08);
+}
+
+.tasks li.completed .taskText,
+.tasks li.completed .taskMeta{
+    opacity: 0.66;
+}
+
+/* Keep popup-alert ON state in theme colors (not green) */
+.alertToggleBtn.enabled{
+    border-color: rgba(203, 176, 255, 0.86);
+    background: linear-gradient(120deg, rgba(201, 165, 255, 0.94), rgba(141, 148, 255, 0.95));
+    color: #f7f1ff;
+}
+
+.alertToggleBtn.enabled:hover{
+    border-color: rgba(225, 205, 255, 0.96);
+    background: linear-gradient(120deg, rgba(212, 181, 255, 0.98), rgba(154, 161, 255, 0.98));
+    color: #ffffff;
+}
+
+/* Activity heatmap: purple scale */
+.heatCell{
+    border: 1px solid rgba(170, 145, 235, 0.32);
+    background: rgba(214, 204, 243, 0.74);
+}
+
+.heatCell.level-0{ background: rgba(211, 200, 240, 0.7); }
+.heatCell.level-1{ background: rgba(192, 170, 241, 0.78); }
+.heatCell.level-2{ background: rgba(170, 138, 239, 0.84); }
+.heatCell.level-3{ background: rgba(145, 102, 232, 0.9); }
+.heatCell.level-4{ background: rgba(119, 72, 218, 0.96); }
 
 
 

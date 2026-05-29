@@ -5,6 +5,7 @@ const taskDetailsPanel = document.querySelector('.taskDetailsPanel');
 const typePills = Array.from(document.querySelectorAll('.typePill'));
 const durationChips = Array.from(document.querySelectorAll('.durationChip'));
 const durationInput = document.querySelector('.durationInput');
+const difficultySelect = document.querySelector('.difficultySelect');
 const deadlineInput = document.querySelector('.deadlineInput');
 const deadlineContainer = document.querySelector('.deadlineContainer');
 const calendarBtn = document.querySelector('.calendarBtn');
@@ -21,6 +22,8 @@ const activityGrid = document.querySelector('.activityGrid');
 const activitySummary = document.querySelector('.activitySummary');
 const deadlinePresetButtons = Array.from(document.querySelectorAll('.deadlinePresetBtn'));
 const taskViewButtons = Array.from(document.querySelectorAll('.taskViewBtn'));
+const overdueViewButton = document.querySelector('.taskViewBtn[data-view="overdue"]');
+const overdueCountBadge = overdueViewButton?.querySelector('.overdueCountBadge');
 const tasksList = document.querySelector('.tasks');
 const progressBar = document.querySelector('.progressBar');
 const motivatorText = document.querySelector('.motivatorText');
@@ -40,8 +43,16 @@ const MATRIX_CONFIG = {
 };
 
 const TASK_TYPE_CONFIG = {
-    timeboxed: { label: 'Timeboxed', rank: 2 },
-    open: { label: 'Open-ended', rank: 1 }
+    timeboxed: { label: 'Estimate time', rank: 2 },
+    open: { label: 'No time estimate', rank: 1 }
+};
+
+const DIFFICULTY_CONFIG = {
+    1: { label: 'Very Easy', rank: 1 },
+    2: { label: 'Easy', rank: 2 },
+    3: { label: 'Medium', rank: 3 },
+    4: { label: 'Hard', rank: 4 },
+    5: { label: 'Very Hard', rank: 5 }
 };
 
 const VIEW_CONFIG = {
@@ -62,9 +73,18 @@ let lastRealtimeBucket = -1;
 let lastActivityRenderDateKey = '';
 let taskEditorOverlay = null;
 let activeEditorTaskId = null;
-const notifiedStageKeys = new Set();
+const stageReminderTimestamps = new Map();
+let lastGlobalReminderAt = 0;
 let popupAlertsEnabled = false;
 let activityCountsByDate = {};
+
+const REMINDER_COOLDOWN_MS = {
+    soon: 45 * 60 * 1000,
+    critical: 20 * 60 * 1000,
+    overdue: 30 * 60 * 1000
+};
+
+const GLOBAL_REMINDER_GAP_MS = 8 * 60 * 1000;
 
 const clickAudio = new Audio('Button Click SFX.mp3');
 clickAudio.preload = 'auto';
@@ -73,18 +93,23 @@ const taskCompleteAudio = new Audio('Goal SFX.mp3');
 taskCompleteAudio.preload = 'auto';
 
 addBtn.addEventListener('click', addTaskFromInputs);
-calendarBtn.addEventListener('click', openCalendar);
+if (calendarBtn) {
+    calendarBtn.addEventListener('click', openCalendar);
+}
 priorityToggle.addEventListener('change', onToggleAutoPriority);
 sortOnceBtn.addEventListener('click', onSuggestOrderOnce);
 alertToggleBtn.addEventListener('click', onTogglePopupAlerts);
 detailsToggleBtn.addEventListener('click', () => {
+    playClickSound();
     setDetailsPanelOpen(!taskDetailsPanel.classList.contains('open'));
 });
 
+matrixSelect.addEventListener('change', playClickSound);
+if (difficultySelect) {
+    difficultySelect.addEventListener('change', playClickSound);
+}
+
 deadlineContainer.addEventListener('click', (event) => {
-    if (event.target.closest('.calendarBtn')) {
-        return;
-    }
     setDetailsPanelOpen(true);
     showDeadlinePresets();
     openCalendar();
@@ -165,6 +190,7 @@ function addTaskFromInputs() {
     const taskType = getSelectedTaskType();
     const estimateMinutes = taskType === 'timeboxed' ? parseDurationMinutes(durationInput.value) : null;
     const matrix = getValidMatrixValue(matrixSelect.value);
+    const difficulty = getValidDifficultyLevel(difficultySelect?.value);
     const dueAt = parseDeadlineInput(deadlineInput.value);
     const timestamp = new Date().toISOString();
 
@@ -177,6 +203,7 @@ function addTaskFromInputs() {
         text: taskText,
         completed: false,
         matrix,
+        difficulty,
         taskType,
         estimateMinutes,
         dueAt,
@@ -191,6 +218,9 @@ function addTaskFromInputs() {
     matrixSelect.value = 'schedule';
     setTaskTypePillState('open');
     durationInput.value = '';
+    if (difficultySelect) {
+        difficultySelect.value = '3';
+    }
     deadlineInput.value = '';
     hideDeadlinePresets();
     updateDurationInputVisibility();
@@ -225,6 +255,8 @@ function onToggleAutoPriority() {
 }
 
 function onTogglePopupAlerts() {
+    playClickSound();
+
     if (!('Notification' in window)) {
         urgencyAlertText.textContent = 'Popup alerts are not supported in this browser.';
         popupAlertsEnabled = false;
@@ -505,13 +537,18 @@ function createTaskItem(task) {
     effortBadge.classList.add('effortBadge');
     effortBadge.textContent = getEffortLabel(task);
 
+    const difficultyBadge = document.createElement('span');
+    const difficultyLevel = getValidDifficultyLevel(task.difficulty);
+    difficultyBadge.classList.add('difficultyBadge', `difficulty-${difficultyLevel}`);
+    difficultyBadge.textContent = getDifficultyLabel(difficultyLevel);
+
     const deadlineBadge = document.createElement('span');
     deadlineBadge.classList.add('deadlineBadge');
 
     const countdownBadge = document.createElement('span');
     countdownBadge.classList.add('countdownBadge');
 
-    const deadlineStatus = getDeadlineStatus(task.dueAt);
+    const deadlineStatus = getTaskDisplayDeadlineStatus(task);
     taskItem.classList.add(`status-${deadlineStatus.urgencyLevel}`);
     deadlineBadge.classList.add(deadlineStatus.deadlineClassName);
     deadlineBadge.textContent = deadlineStatus.deadlineLabel;
@@ -520,6 +557,7 @@ function createTaskItem(task) {
     countdownBadge.textContent = deadlineStatus.countdownLabel;
 
     taskMeta.appendChild(matrixBadge);
+    taskMeta.appendChild(difficultyBadge);
     taskMeta.appendChild(effortBadge);
     taskMeta.appendChild(deadlineBadge);
     taskMeta.appendChild(countdownBadge);
@@ -571,9 +609,15 @@ function getEffortLabel(task) {
     const taskType = getValidTaskType(task.taskType);
     if (taskType === 'timeboxed') {
         const minutes = task.estimateMinutes || 0;
-        return minutes > 0 ? `Timeboxed ${minutes}m` : 'Timeboxed';
+        return minutes > 0 ? `Est. ${minutes}m` : 'Estimate time';
     }
-    return 'Open-ended';
+    return 'No estimate';
+}
+
+function getDifficultyLabel(level) {
+    const normalizedLevel = getValidDifficultyLevel(level);
+    const difficulty = DIFFICULTY_CONFIG[normalizedLevel];
+    return `D${normalizedLevel} (${difficulty.label})`;
 }
 
 function canUseManualDrag() {
@@ -582,6 +626,7 @@ function canUseManualDrag() {
 
 function attachDragEvents(taskItem) {
     taskItem.draggable = canUseManualDrag();
+    taskItem.dataset.dragDepth = '0';
 
     taskItem.addEventListener('dragstart', (event) => {
         if (!canUseManualDrag()) {
@@ -605,6 +650,7 @@ function attachDragEvents(taskItem) {
         }
 
         event.preventDefault();
+        taskItem.classList.add('drag-over-slot');
         if (event.dataTransfer) {
             event.dataTransfer.dropEffect = 'move';
         }
@@ -616,11 +662,17 @@ function attachDragEvents(taskItem) {
         }
 
         event.preventDefault();
+        const nextDepth = Number(taskItem.dataset.dragDepth || '0') + 1;
+        taskItem.dataset.dragDepth = String(nextDepth);
         taskItem.classList.add('drag-over-slot');
     });
 
     taskItem.addEventListener('dragleave', () => {
-        taskItem.classList.remove('drag-over-slot');
+        const nextDepth = Math.max(0, Number(taskItem.dataset.dragDepth || '0') - 1);
+        taskItem.dataset.dragDepth = String(nextDepth);
+        if (nextDepth === 0) {
+            taskItem.classList.remove('drag-over-slot');
+        }
     });
 
     taskItem.addEventListener('drop', (event) => {
@@ -648,10 +700,14 @@ function attachDragEvents(taskItem) {
         swapTaskSlotsWithAnimation(sourceItem, targetItem);
         syncManualOrderFromDom();
         saveTasks();
+        taskItem.dataset.dragDepth = '0';
         clearDragStates();
     });
 
-    taskItem.addEventListener('dragend', clearDragStates);
+    taskItem.addEventListener('dragend', () => {
+        taskItem.dataset.dragDepth = '0';
+        clearDragStates();
+    });
 }
 
 function clearDragStates() {
@@ -659,6 +715,7 @@ function clearDragStates() {
     tasksList.classList.remove('drag-active');
 
     tasksList.querySelectorAll('li').forEach((taskItem) => {
+        taskItem.dataset.dragDepth = '0';
         taskItem.classList.remove('dragging', 'drag-over-slot');
     });
 }
@@ -773,9 +830,10 @@ function editTask(taskId) {
     const editorMatrixSelect = taskEditorOverlay.querySelector('.editorMatrixSelect');
     const editorTaskTypeSelect = taskEditorOverlay.querySelector('.editorTaskTypeSelect');
     const editorDurationInput = taskEditorOverlay.querySelector('.editorDurationInput');
+    const editorDifficultySelect = taskEditorOverlay.querySelector('.editorDifficultySelect');
     const editorDeadlineInput = taskEditorOverlay.querySelector('.editorDeadlineInput');
 
-    if (!editorTextInput || !editorMatrixSelect || !editorTaskTypeSelect || !editorDurationInput || !editorDeadlineInput) {
+    if (!editorTextInput || !editorMatrixSelect || !editorTaskTypeSelect || !editorDurationInput || !editorDifficultySelect || !editorDeadlineInput) {
         return;
     }
 
@@ -784,6 +842,7 @@ function editTask(taskId) {
     editorMatrixSelect.value = getValidMatrixValue(task.matrix);
     editorTaskTypeSelect.value = getValidTaskType(task.taskType);
     editorDurationInput.value = task.estimateMinutes ? String(task.estimateMinutes) : '';
+    editorDifficultySelect.value = String(getValidDifficultyLevel(task.difficulty));
     editorDeadlineInput.value = task.dueAt ? toDatetimeLocalValue(task.dueAt) : '';
 
     updateEditorDurationInputVisibility();
@@ -816,11 +875,21 @@ function initializeTaskEditor() {
                 Task Type
                 <div class="editorEffortRow">
                     <select class="editorTaskTypeSelect">
-                        <option value="timeboxed">Timeboxed task (known duration)</option>
-                        <option value="open">Open-ended task (unknown duration)</option>
+                        <option value="timeboxed">Estimate time (known minutes)</option>
+                        <option value="open">No time estimate</option>
                     </select>
                     <input type="number" class="editorDurationInput" min="5" step="5" placeholder="Minutes">
                 </div>
+            </label>
+            <label>
+                Difficulty
+                <select class="editorDifficultySelect">
+                    <option value="1">1 (Very Easy)</option>
+                    <option value="2">2 (Easy)</option>
+                    <option value="3" selected>3 (Medium)</option>
+                    <option value="4">4 (Hard)</option>
+                    <option value="5">5 (Very Hard)</option>
+                </select>
             </label>
             <label>
                 Deadline
@@ -841,7 +910,9 @@ function initializeTaskEditor() {
     document.body.appendChild(taskEditorOverlay);
 
     const editorTextInput = taskEditorOverlay.querySelector('.editorTextInput');
+    const editorMatrixSelect = taskEditorOverlay.querySelector('.editorMatrixSelect');
     const editorTaskTypeSelect = taskEditorOverlay.querySelector('.editorTaskTypeSelect');
+    const editorDifficultySelect = taskEditorOverlay.querySelector('.editorDifficultySelect');
     const editorDurationInput = taskEditorOverlay.querySelector('.editorDurationInput');
     const editorDeadlineInput = taskEditorOverlay.querySelector('.editorDeadlineInput');
     const editorDeadlineWrap = taskEditorOverlay.querySelector('.editorDeadlineWrap');
@@ -850,7 +921,18 @@ function initializeTaskEditor() {
     const editorSaveBtn = taskEditorOverlay.querySelector('.editorSaveBtn');
 
     if (editorTaskTypeSelect) {
-        editorTaskTypeSelect.addEventListener('change', updateEditorDurationInputVisibility);
+        editorTaskTypeSelect.addEventListener('change', () => {
+            playClickSound();
+            updateEditorDurationInputVisibility();
+        });
+    }
+
+    if (editorMatrixSelect) {
+        editorMatrixSelect.addEventListener('change', playClickSound);
+    }
+
+    if (editorDifficultySelect) {
+        editorDifficultySelect.addEventListener('change', playClickSound);
     }
 
     if (editorCalendarBtn && editorDeadlineInput) {
@@ -947,9 +1029,10 @@ function saveTaskEditorChanges() {
     const editorMatrixSelect = taskEditorOverlay.querySelector('.editorMatrixSelect');
     const editorTaskTypeSelect = taskEditorOverlay.querySelector('.editorTaskTypeSelect');
     const editorDurationInput = taskEditorOverlay.querySelector('.editorDurationInput');
+    const editorDifficultySelect = taskEditorOverlay.querySelector('.editorDifficultySelect');
     const editorDeadlineInput = taskEditorOverlay.querySelector('.editorDeadlineInput');
 
-    if (!editorTextInput || !editorMatrixSelect || !editorTaskTypeSelect || !editorDurationInput || !editorDeadlineInput) {
+    if (!editorTextInput || !editorMatrixSelect || !editorTaskTypeSelect || !editorDurationInput || !editorDifficultySelect || !editorDeadlineInput) {
         closeTaskEditor();
         return;
     }
@@ -967,6 +1050,7 @@ function saveTaskEditorChanges() {
     task.matrix = getValidMatrixValue(editorMatrixSelect.value);
     task.taskType = updatedTaskType;
     task.estimateMinutes = updatedTaskType === 'timeboxed' ? parseDurationMinutes(editorDurationInput.value) : null;
+    task.difficulty = getValidDifficultyLevel(editorDifficultySelect.value);
     task.dueAt = parseDeadlineInput(editorDeadlineInput.value);
     task.updatedAt = new Date().toISOString();
 
@@ -998,42 +1082,50 @@ function compareByPriority(taskA, taskB) {
         return taskA.completed ? 1 : -1;
     }
 
+    const scoreA = getPriorityScore(taskA);
+    const scoreB = getPriorityScore(taskB);
+    if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+    }
+
     const statusA = getDeadlineStatus(taskA.dueAt);
     const statusB = getDeadlineStatus(taskB.dueAt);
-
-    if (statusA.isOverdue !== statusB.isOverdue) {
-        return statusA.isOverdue ? -1 : 1;
-    }
-
-    if (statusA.hasDeadline !== statusB.hasDeadline) {
-        return statusA.hasDeadline ? -1 : 1;
-    }
-
     if (statusA.deadlineTimestamp !== statusB.deadlineTimestamp) {
         return statusA.deadlineTimestamp - statusB.deadlineTimestamp;
     }
 
-    const matrixRankA = MATRIX_CONFIG[getValidMatrixValue(taskA.matrix)].rank;
-    const matrixRankB = MATRIX_CONFIG[getValidMatrixValue(taskB.matrix)].rank;
-    if (matrixRankA !== matrixRankB) {
-        return matrixRankB - matrixRankA;
-    }
-
-    const typeRankA = TASK_TYPE_CONFIG[getValidTaskType(taskA.taskType)].rank;
-    const typeRankB = TASK_TYPE_CONFIG[getValidTaskType(taskB.taskType)].rank;
-    if (typeRankA !== typeRankB) {
-        return typeRankB - typeRankA;
-    }
-
-    if (getValidTaskType(taskA.taskType) === 'timeboxed' && getValidTaskType(taskB.taskType) === 'timeboxed') {
-        const minsA = taskA.estimateMinutes || Number.MAX_SAFE_INTEGER;
-        const minsB = taskB.estimateMinutes || Number.MAX_SAFE_INTEGER;
-        if (minsA !== minsB) {
-            return minsA - minsB;
-        }
-    }
-
     return compareByCreatedTime(taskA, taskB);
+}
+
+function getPriorityScore(task) {
+    const status = getDeadlineStatus(task.dueAt);
+    const matrixRank = MATRIX_CONFIG[getValidMatrixValue(task.matrix)].rank;
+    const typeRank = TASK_TYPE_CONFIG[getValidTaskType(task.taskType)].rank;
+    const difficultyRank = DIFFICULTY_CONFIG[getValidDifficultyLevel(task.difficulty)].rank;
+
+    let score = 0;
+
+    if (status.isOverdue) {
+        score += 1000;
+        score += Math.min(320, Math.abs(status.timeUntilMs) / 3600000);
+    } else if (status.hasDeadline) {
+        const hoursLeft = Math.max(1, status.timeUntilMs / 3600000);
+        score += Math.max(0, 260 - Math.min(260, hoursLeft));
+
+        // Heavy tasks with less time left should move up sooner.
+        const effortPressure = difficultyRank / hoursLeft;
+        score += Math.min(180, effortPressure * 140);
+    }
+
+    score += matrixRank * 45;
+    score += difficultyRank * 20;
+    score += typeRank * 6;
+
+    if (getValidTaskType(task.taskType) === 'timeboxed' && task.estimateMinutes) {
+        score += Math.min(30, task.estimateMinutes / 10);
+    }
+
+    return Math.round(score * 1000);
 }
 
 function compareByCreatedTime(taskA, taskB) {
@@ -1140,6 +1232,7 @@ function migrateLegacyTasks() {
                     text: task.text.trim(),
                     completed: Boolean(task.completed),
                     matrix: 'schedule',
+                    difficulty: 3,
                     taskType: 'open',
                     estimateMinutes: null,
                     dueAt: null,
@@ -1371,6 +1464,7 @@ function normalizeTask(task, fallbackManualOrder) {
         text: typeof task.text === 'string' ? task.text.trim() : '',
         completed: Boolean(task.completed),
         matrix: getValidMatrixValue(task.matrix),
+        difficulty: getValidDifficultyLevel(task.difficulty),
         taskType: getValidTaskType(task.taskType),
         estimateMinutes: parseDurationMinutes(task.estimateMinutes),
         dueAt,
@@ -1393,6 +1487,12 @@ function getValidMatrixValue(value) {
 
 function getValidTaskType(value) {
     return Object.prototype.hasOwnProperty.call(TASK_TYPE_CONFIG, value) ? value : 'open';
+}
+
+function getValidDifficultyLevel(value) {
+    const parsed = Number(value);
+    const normalized = Number.isFinite(parsed) ? Math.round(parsed) : 3;
+    return Object.prototype.hasOwnProperty.call(DIFFICULTY_CONFIG, normalized) ? normalized : 3;
 }
 
 function parseDurationMinutes(value) {
@@ -1538,7 +1638,26 @@ function getDeadlineStatus(dueAt) {
     };
 }
 
+function getTaskDisplayDeadlineStatus(task) {
+    if (task.completed) {
+        return {
+            hasDeadline: false,
+            isOverdue: false,
+            deadlineTimestamp: Number.MAX_SAFE_INTEGER,
+            timeUntilMs: Number.MAX_SAFE_INTEGER,
+            urgencyLevel: 'normal',
+            deadlineLabel: 'Completed',
+            deadlineClassName: 'deadline-none',
+            countdownLabel: 'Timer stopped',
+            countdownClassName: 'countdown-none'
+        };
+    }
+
+    return getDeadlineStatus(task.dueAt);
+}
 function refreshDeadlineBadges() {
+    let notificationCandidate = null;
+
     tasksList.querySelectorAll('li').forEach((taskItem) => {
         const taskId = taskItem.dataset.taskId;
         if (!taskId) {
@@ -1557,7 +1676,7 @@ function refreshDeadlineBadges() {
             return;
         }
 
-        const deadlineStatus = getDeadlineStatus(task.dueAt);
+        const deadlineStatus = getTaskDisplayDeadlineStatus(task);
 
         deadlineBadge.classList.remove('deadline-none', 'deadline-normal', 'deadline-soon', 'deadline-critical', 'deadline-overdue');
         deadlineBadge.classList.add(deadlineStatus.deadlineClassName);
@@ -1572,8 +1691,48 @@ function refreshDeadlineBadges() {
 
         effortBadge.textContent = getEffortLabel(task);
 
-        maybeNotifyTaskUrgency(task, deadlineStatus);
+        if (!isNotifiableUrgency(task, deadlineStatus)) {
+            return;
+        }
+
+        if (!notificationCandidate) {
+            notificationCandidate = { task, status: deadlineStatus };
+            return;
+        }
+
+        const currentRank = getUrgencyRank(deadlineStatus.urgencyLevel);
+        const candidateRank = getUrgencyRank(notificationCandidate.status.urgencyLevel);
+
+        if (currentRank > candidateRank) {
+            notificationCandidate = { task, status: deadlineStatus };
+            return;
+        }
+
+        if (currentRank === candidateRank && deadlineStatus.deadlineTimestamp < notificationCandidate.status.deadlineTimestamp) {
+            notificationCandidate = { task, status: deadlineStatus };
+        }
     });
+
+    if (notificationCandidate) {
+        maybeNotifyTaskUrgency(notificationCandidate.task, notificationCandidate.status);
+    }
+}
+
+function getUrgencyRank(urgencyLevel) {
+    if (urgencyLevel === 'overdue') {
+        return 3;
+    }
+    if (urgencyLevel === 'critical') {
+        return 2;
+    }
+    if (urgencyLevel === 'soon') {
+        return 1;
+    }
+    return 0;
+}
+
+function isNotifiableUrgency(task, status) {
+    return Boolean(status.hasDeadline && !task.completed && getUrgencyRank(status.urgencyLevel) > 0);
 }
 
 function maybeNotifyTaskUrgency(task, status) {
@@ -1586,21 +1745,55 @@ function maybeNotifyTaskUrgency(task, status) {
     }
 
     const stage = status.urgencyLevel;
+    const now = Date.now();
+    const stageCooldown = REMINDER_COOLDOWN_MS[stage] || REMINDER_COOLDOWN_MS.soon;
     const notifyKey = `${task.id}|${task.dueAt || ''}|${stage}`;
-    if (notifiedStageKeys.has(notifyKey)) {
+    const lastStageReminderAt = stageReminderTimestamps.get(notifyKey) || 0;
+
+    if (lastStageReminderAt > 0 && now - lastStageReminderAt < stageCooldown) {
         return;
     }
 
-    notifiedStageKeys.add(notifyKey);
+    if (now - lastGlobalReminderAt < GLOBAL_REMINDER_GAP_MS) {
+        return;
+    }
+
+    stageReminderTimestamps.set(notifyKey, now);
+    lastGlobalReminderAt = now;
+    pruneStageReminderTimestamps(now);
 
     const title = stage === 'overdue'
-        ? 'Task overdue'
+        ? 'Reminder: task overdue'
         : stage === 'critical'
-            ? 'Task due very soon'
-            : 'Task due soon';
+            ? 'Reminder: task due very soon'
+            : 'Reminder: task due soon';
 
     const body = `${task.text} • ${status.countdownLabel}`;
     new Notification(title, { body, silent: false });
+}
+
+function pruneStageReminderTimestamps(now = Date.now()) {
+    const maxAgeMs = 3 * 24 * 60 * 60 * 1000;
+    for (const [key, timestamp] of stageReminderTimestamps.entries()) {
+        if (now - timestamp > maxAgeMs) {
+            stageReminderTimestamps.delete(key);
+        }
+    }
+}
+
+function updateOverdueCountBadge(overdueCount) {
+    if (!overdueViewButton || !overdueCountBadge) {
+        return;
+    }
+
+    overdueCountBadge.textContent = String(overdueCount);
+    overdueCountBadge.classList.toggle('visible', overdueCount > 0);
+    overdueViewButton.classList.toggle('has-overdue', overdueCount > 0);
+
+    const ariaLabel = overdueCount > 0
+        ? `Overdue notifications: ${overdueCount}`
+        : 'Overdue';
+    overdueViewButton.setAttribute('aria-label', ariaLabel);
 }
 
 function updateUrgencyAlert() {
@@ -1613,6 +1806,9 @@ function updateUrgencyAlert() {
         .map((task) => ({ task, status: getDeadlineStatus(task.dueAt) }))
         .filter((entry) => entry.status.hasDeadline)
         .sort((entryA, entryB) => entryA.status.deadlineTimestamp - entryB.status.deadlineTimestamp);
+    const overdueCount = rankedByUrgency.filter((entry) => entry.status.urgencyLevel === 'overdue').length;
+
+    updateOverdueCountBadge(overdueCount);
 
     urgencyAlert.classList.remove('hidden', 'urgency-soon', 'urgency-critical', 'urgency-overdue');
 
@@ -1630,7 +1826,9 @@ function updateUrgencyAlert() {
     urgencyAlert.classList.add(`urgency-${top.status.urgencyLevel}`);
 
     if (top.status.urgencyLevel === 'overdue') {
-        urgencyAlertText.textContent = `Overdue: ${top.task.text} (${top.status.countdownLabel}).`;
+        urgencyAlertText.textContent = overdueCount === 1
+            ? '1 overdue task.'
+            : `${overdueCount} overdue tasks.`;
     } else if (top.status.urgencyLevel === 'critical') {
         urgencyAlertText.textContent = `Due very soon: ${top.task.text} (${top.status.countdownLabel}).`;
     } else {
