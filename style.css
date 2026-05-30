@@ -751,7 +751,8 @@ body{
     --rows: 7;
     --cell-gap: 3px;
     --day-label-width: 30px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 2px;
 }
 
@@ -2762,6 +2763,443 @@ body::after{
     font-weight: 600;
 }
 
+/* Clarity + guidance UI */
+.onboardingHint{
+    width: 92%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(188, 170, 255, 0.5);
+    background: linear-gradient(135deg, rgba(66, 50, 143, 0.84), rgba(43, 31, 105, 0.88));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.onboardingHint.hidden{
+    display: none;
+}
+
+.onboardingHintText{
+    font-size: 12px;
+    line-height: 1.4;
+    color: #f6f0ff;
+}
+
+.onboardingDismissBtn{
+    border: 1px solid rgba(221, 208, 255, 0.75);
+    border-radius: 999px;
+    height: 30px;
+    padding: 0 11px;
+    background: rgba(233, 222, 255, 0.2);
+    color: #f8f3ff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.onboardingDismissBtn:hover{
+    background: rgba(245, 238, 255, 0.28);
+}
+
+.detailsHelp{
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: rgba(232, 224, 255, 0.9);
+    font-weight: 600;
+}
+
+.nextTaskPanel{
+    width: 92%;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(189, 172, 255, 0.54);
+    background: linear-gradient(155deg, rgba(62, 46, 140, 0.84), rgba(37, 26, 96, 0.88));
+    padding: 10px 12px;
+}
+
+.nextTaskPanel.hidden{
+    display: none;
+}
+
+.nextTaskLabel{
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    color: rgba(220, 209, 255, 0.92);
+    text-transform: uppercase;
+}
+
+.nextTaskTitle{
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.nextTaskReasonWrap{
+    margin-top: 8px;
+}
+
+.nextTaskReasonLabel{
+    font-size: 12px;
+    color: rgba(231, 221, 255, 0.92);
+    margin-bottom: 4px;
+}
+
+.nextTaskReasons{
+    margin-left: 16px;
+    color: rgba(245, 240, 255, 0.95);
+    font-size: 12px;
+    line-height: 1.4;
+    display: grid;
+    gap: 3px;
+}
+
+.nextTaskActions{
+    margin-top: 9px;
+    display: flex;
+    gap: 8px;
+}
+
+.rankNowBtn,
+.focusNextBtn{
+    border: 1px solid rgba(192, 174, 255, 0.62);
+    background: linear-gradient(145deg, rgba(46, 33, 109, 0.95), rgba(31, 22, 82, 0.95));
+    color: #f4efff;
+    border-radius: 999px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.rankNowBtn,
+.focusNextBtn{
+    cursor: pointer;
+}
+
+.rankNowBtn:hover,
+.focusNextBtn:hover{
+    border-color: rgba(223, 212, 255, 0.84);
+    background: linear-gradient(145deg, rgba(61, 45, 132, 0.96), rgba(42, 30, 108, 0.96));
+}
+
+/* Usability fixes for new controls */
+.rankNowBtn,
+.focusNextBtn,
+.onboardingDismissBtn{
+    white-space: nowrap;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rankNowBtn{
+    min-width: 92px;
+}
+
+.onboardingDismissBtn{
+    min-width: 72px;
+}
+
+.priorityHeaderRow{
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 8px;
+}
+
+.priorityToggleLabel{
+    flex: 1 1 190px;
+    min-width: 180px;
+}
+
+.sortOnceBtn,
+.alertToggleBtn{
+    flex: 0 0 auto;
+}
+
+/* Use desktop space better: split into main + side rail */
+@media (min-width: 1060px){
+    .container{
+        width: min(1160px, 96vw);
+    }
+
+    .to-doList{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        column-gap: 16px;
+        align-items: start;
+    }
+
+    .title,
+    .motivatorContainer,
+    .inputContainer,
+    .taskDetailsPanel,
+    .onboardingHint,
+    .urgencyAlert,
+    .taskViews,
+    .tasks{
+        grid-column: 1;
+        width: 100%;
+    }
+
+    .activityPanel,
+    .nextTaskPanel,
+    .priorityControls{
+        grid-column: 2;
+        width: 100%;
+    }
+
+    .activityPanel{
+        margin-top: 4px;
+    }
+
+    .tasks{
+        margin-top: 2px;
+    }
+
+    .priorityControls{
+        position: static;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 700px){
+    .onboardingHint{
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .priorityHeaderRow{
+        flex-wrap: wrap;
+    }
+
+    .nextTaskActions{
+        flex-wrap: wrap;
+    }
+}
+
+/* Structural layout split: not one centered block */
+.container{
+    width: min(1280px, 97vw);
+    min-height: auto;
+    height: auto;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+.appShell{
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 430px;
+    gap: 18px;
+    align-items: stretch;
+}
+
+.mainColumn,
+.sideColumn{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mainColumn{
+    margin-top: 10px;
+}
+
+.sideColumn{
+    margin-top: 100px;
+}
+
+.mainColumn .title,
+.mainColumn .motivatorContainer,
+.mainColumn .inputContainer,
+.mainColumn .onboardingHint,
+.mainColumn .taskDetailsPanel,
+.mainColumn .urgencyAlert,
+.mainColumn .nextTaskPanel,
+.mainColumn .taskViews,
+.mainColumn .tasks,
+.sideColumn .priorityControls{
+    width: 100%;
+    margin-top: 0;
+}
+
+.sideColumn .activityPanel{
+    width: 100%;
+    margin-top: 0;
+    min-height: 0;
+}
+
+.mainColumn .tasks{
+    transform: none;
+}
+
+.mainColumn .title{
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.sideColumn .priorityControls{
+    position: static;
+}
+
+@media (max-width: 1060px){
+    .appShell{
+        grid-template-columns: 1fr;
+    }
+
+    .mainColumn{
+        margin-top: 0;
+    }
+
+    .sideColumn{
+        margin-top: 0;
+    }
+
+    .sideColumn .priorityControls{
+        position: static;
+    }
+
+    .sideColumn .activityPanel{
+        margin-top: 0;
+        min-height: 0;
+    }
+}
+
+/* Prioritize panel layout: avoid flat full-width stack */
+.mainColumn .taskDetailsPanel.open{
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(169, 152, 245, 0.38);
+    background: linear-gradient(160deg, rgba(41, 28, 104, 0.5), rgba(26, 18, 79, 0.54));
+}
+
+.mainColumn .taskDetailsPanel .detailsGrid{
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 10px 12px;
+    align-items: start;
+}
+
+.mainColumn .taskDetailsPanel .matrixSelect{
+    grid-column: 1;
+}
+
+.mainColumn .taskDetailsPanel .difficultySelect{
+    grid-column: 2;
+}
+
+.mainColumn .taskDetailsPanel .effortContainer,
+.mainColumn .taskDetailsPanel .deadlineContainer{
+    border: 1px solid rgba(173, 156, 246, 0.32);
+    border-radius: 12px;
+    background: rgba(30, 20, 84, 0.44);
+    padding: 10px;
+}
+
+.mainColumn .taskDetailsPanel .effortContainer{
+    grid-column: 1;
+    gap: 10px;
+}
+
+.mainColumn .taskDetailsPanel .deadlineContainer{
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.mainColumn .taskDetailsPanel .deadlineTag{
+    height: 36px;
+}
+
+.mainColumn .taskDetailsPanel .deadlineInput{
+    height: 46px;
+}
+
+.mainColumn .taskDetailsPanel .durationWrap{
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+@media (max-width: 1060px){
+    .mainColumn .taskDetailsPanel .detailsGrid{
+        grid-template-columns: 1fr;
+    }
+
+    .mainColumn .taskDetailsPanel .matrixSelect,
+    .mainColumn .taskDetailsPanel .difficultySelect,
+    .mainColumn .taskDetailsPanel .effortContainer,
+    .mainColumn .taskDetailsPanel .deadlineContainer{
+        grid-column: 1;
+    }
+}
+
+/* Activity panel refinements */
+.activityPanel{
+    padding: 10px 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activityHeader{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.activitySummary{
+    width: 100%;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activityLegend{
+    margin-top: 2px;
+}
+
+@media (max-width: 740px){
+    .activitySummary{
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+}
+
+/* Themed tooltip replaces native black tooltip */
+.activityTooltip{
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1200;
+    pointer-events: none;
+    border: 1px solid rgba(220, 207, 255, 0.72);
+    border-radius: 9px;
+    padding: 7px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #f6efff;
+    background: linear-gradient(145deg, rgba(67, 50, 143, 0.98), rgba(40, 28, 103, 0.99));
+    box-shadow: 0 8px 22px rgba(17, 9, 49, 0.5);
+}
+
+.activityTooltip.hidden{
+    display: none;
+}
+
+
 /* Task slot visual separation: active vs completed */
 .tasks li{
     background:
@@ -2805,6 +3243,482 @@ body::after{
 .heatCell.level-2{ background: rgba(170, 138, 239, 0.84); }
 .heatCell.level-3{ background: rgba(145, 102, 232, 0.9); }
 .heatCell.level-4{ background: rgba(119, 72, 218, 0.96); }
+
+/* Mobile-only usability layer (desktop unchanged) */
+@media (max-width: 900px){
+    html,
+    body{
+        overflow-x: hidden;
+    }
+
+    body{
+        padding: 10px 0 16px;
+    }
+
+    .container{
+        width: min(100%, calc(100vw - 12px));
+        border-radius: 14px;
+    }
+
+    .appShell{
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .mainColumn,
+    .sideColumn{
+        gap: 10px;
+        margin-top: 0;
+        min-width: 0;
+    }
+
+    .mainColumn .title{
+        margin-bottom: 2px;
+    }
+
+    .mainColumn .motivatorContainer{
+        min-height: 86px;
+        height: auto;
+        padding: 14px;
+    }
+
+    .mainColumn .inputContainer{
+        gap: 8px;
+        align-items: center;
+    }
+
+    .mainColumn .taskInput{
+        height: 46px;
+        padding: 12px;
+    }
+
+    .mainColumn .detailsToggleBtn,
+    .sideColumn .sortOnceBtn,
+    .sideColumn .alertToggleBtn,
+    .mainColumn .taskViewBtn,
+    .mainColumn .typePill{
+        min-height: 40px;
+    }
+
+    .mainColumn .addBtn,
+    .mainColumn .checkBtn,
+    .mainColumn .editBtn,
+    .mainColumn .deleteBtn{
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+    }
+
+    .mainColumn .taskViews{
+        flex-wrap: wrap;
+        overflow: visible;
+        padding-bottom: 0;
+        row-gap: 8px;
+    }
+
+    .mainColumn .taskViewBtn{
+        flex: 0 0 auto;
+        padding: 0 10px;
+        font-size: 10px;
+    }
+
+    .mainColumn .activityPanel,
+    .sideColumn .activityPanel{
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .mainColumn .activityGridWrap,
+    .sideColumn .activityGridWrap{
+        --day-label-width: 22px;
+        --cell-gap: 1px;
+        overflow-x: hidden;
+    }
+
+    .mainColumn .activityMonthLabel,
+    .sideColumn .activityMonthLabel{
+        font-size: 8px;
+    }
+
+    .mainColumn .activityDayLabel,
+    .sideColumn .activityDayLabel{
+        font-size: 8px;
+        padding-right: 1px;
+    }
+
+    .mainColumn .activityLegend,
+    .sideColumn .activityLegend{
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 4px;
+    }
+
+    .mainColumn .tasks li{
+        padding: 12px 10px;
+        gap: 10px;
+    }
+
+    .mainColumn .taskButtons{
+        gap: 8px;
+    }
+
+    .mainColumn .taskDetailsPanel.open{
+        padding: 8px;
+    }
+
+    .mainColumn .taskDetailsPanel .detailsGrid{
+        gap: 8px;
+    }
+
+    .mainColumn .taskDetailsPanel .taskTypePills{
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .mainColumn .taskDetailsPanel .deadlineContainer{
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .mainColumn .priorityControls,
+    .sideColumn .priorityControls{
+        width: 100%;
+        margin-top: 6px;
+        padding: 10px;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .mainColumn .priorityHeaderRow,
+    .sideColumn .priorityHeaderRow{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "toggle sort"
+            "toggle alert";
+        align-items: start;
+        column-gap: 10px;
+        row-gap: 8px;
+    }
+
+    .mainColumn .priorityToggleLabel,
+    .sideColumn .priorityToggleLabel{
+        grid-area: toggle;
+        min-width: 0;
+        align-self: start;
+        margin-top: 2px;
+    }
+
+    .mainColumn .sortOnceBtn,
+    .sideColumn .sortOnceBtn{
+        grid-area: sort;
+        justify-self: end;
+    }
+
+    .mainColumn .alertToggleBtn,
+    .sideColumn .alertToggleBtn{
+        grid-area: alert;
+        justify-self: end;
+    }
+
+    .mainColumn .priorityModeHint,
+    .sideColumn .priorityModeHint{
+        margin-top: 0;
+    }
+
+    .sideColumn .activitySummary{
+        white-space: normal;
+    }
+}
+
+@media (max-width: 560px){
+    .mainColumn .inputContainer{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "task add"
+            "prioritize prioritize";
+    }
+
+    .mainColumn .taskInput{
+        grid-area: task;
+    }
+
+    .mainColumn .addBtn{
+        grid-area: add;
+    }
+
+    .mainColumn .detailsToggleBtn{
+        grid-area: prioritize;
+        width: 100%;
+    }
+
+    .mainColumn .taskDetailsPanel .durationWrap{
+        align-items: stretch;
+    }
+}
+
+/* Activity details, undo, and guided tutorial */
+.onboardingActions{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.onboardingStartTourBtn{
+    border: 1px solid rgba(210, 194, 255, 0.76);
+    border-radius: 999px;
+    height: 30px;
+    padding: 0 11px;
+    background: linear-gradient(130deg, rgba(191, 162, 255, 0.82), rgba(135, 146, 255, 0.84));
+    color: #100829;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.onboardingStartTourBtn:hover{
+    filter: brightness(1.06);
+}
+
+.activityDetailsOverlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 4, 30, 0.62);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1400;
+}
+
+.activityDetailsOverlay.hidden{
+    display: none;
+}
+
+.activityDetailsCard{
+    width: min(540px, 96vw);
+    max-height: min(78vh, 620px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 194, 255, 0.56);
+    background: linear-gradient(165deg, rgba(43, 30, 105, 0.97), rgba(24, 16, 72, 0.98));
+    box-shadow: 0 20px 52px rgba(8, 4, 31, 0.58);
+    padding: 14px;
+}
+
+.activityDetailsHeader{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.activityDetailsTitle{
+    font-size: 16px;
+    font-weight: 800;
+    color: #f6f2ff;
+}
+
+.activityDetailsCloseBtn{
+    border: 1px solid rgba(205, 194, 255, 0.64);
+    border-radius: 999px;
+    height: 30px;
+    padding: 0 10px;
+    background: rgba(91, 72, 170, 0.5);
+    color: #f2edff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.activityDetailsMeta{
+    margin-top: 8px;
+    font-size: 12px;
+    color: rgba(218, 208, 255, 0.92);
+}
+
+.activityDetailsList{
+    margin-top: 10px;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.activityDetailsItem,
+.activityDetailsEmpty{
+    border: 1px solid rgba(181, 162, 245, 0.42);
+    border-radius: 10px;
+    background: rgba(45, 31, 112, 0.54);
+    padding: 9px 10px;
+    min-width: 0;
+}
+
+.activityDetailsTaskText{
+    color: #f5f1ff;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.activityDetailsTaskTime,
+.activityDetailsEmpty{
+    margin-top: 4px;
+    color: rgba(214, 203, 255, 0.9);
+    font-size: 11px;
+}
+
+.undoToast{
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 1450;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: min(94vw, 560px);
+    border: 1px solid rgba(203, 184, 255, 0.55);
+    border-radius: 12px;
+    background: linear-gradient(155deg, rgba(58, 42, 131, 0.97), rgba(34, 24, 92, 0.98));
+    box-shadow: 0 12px 36px rgba(8, 5, 30, 0.55);
+    padding: 10px 12px;
+}
+
+.undoToast.hidden{
+    display: none;
+}
+
+.undoToastText{
+    color: #f4efff;
+    font-size: 13px;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.undoDeleteBtn{
+    border: 1px solid rgba(206, 193, 255, 0.82);
+    border-radius: 999px;
+    height: 30px;
+    padding: 0 12px;
+    background: linear-gradient(120deg, rgba(198, 168, 255, 0.96), rgba(145, 154, 255, 0.97));
+    color: #120a32;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tourOverlay{
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(6, 5, 24, 0.56);
+    pointer-events: auto;
+}
+
+.tourOverlay.hidden{
+    display: none;
+}
+
+.tourCard{
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    width: min(340px, calc(100vw - 24px));
+    border-radius: 14px;
+    border: 1px solid rgba(209, 197, 255, 0.64);
+    background: linear-gradient(165deg, rgba(60, 44, 136, 0.98), rgba(34, 24, 95, 0.99));
+    box-shadow: 0 18px 48px rgba(6, 3, 25, 0.56);
+    padding: 12px;
+    color: #f7f4ff;
+}
+
+.tourStepLabel{
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(225, 217, 255, 0.9);
+}
+
+.tourTitle{
+    margin-top: 5px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.tourText{
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(235, 230, 255, 0.95);
+}
+
+.tourActions{
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.tourSkipBtn,
+.tourNextBtn{
+    border: 1px solid rgba(206, 194, 255, 0.76);
+    border-radius: 999px;
+    height: 31px;
+    padding: 0 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.tourSkipBtn{
+    background: rgba(82, 65, 156, 0.66);
+    color: #ece4ff;
+}
+
+.tourNextBtn{
+    background: linear-gradient(120deg, rgba(198, 168, 255, 0.98), rgba(145, 154, 255, 0.98));
+    color: #120a32;
+}
+
+.tourTarget{
+    position: relative;
+    z-index: 1510;
+    box-shadow: 0 0 0 3px rgba(214, 201, 255, 0.78), 0 0 0 8px rgba(133, 111, 224, 0.32) !important;
+    border-radius: 12px;
+}
+
+@media (max-width: 900px){
+    .activityDetailsOverlay{
+        align-items: flex-end;
+        padding: 10px;
+    }
+
+    .activityDetailsCard{
+        width: 100%;
+        max-height: min(74vh, 520px);
+        border-radius: 14px 14px 10px 10px;
+    }
+
+    .undoToast{
+        bottom: 10px;
+        width: min(96vw, 560px);
+    }
+
+    .undoToastText{
+        white-space: normal;
+    }
+}
 
 
 

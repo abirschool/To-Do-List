@@ -16,10 +16,20 @@ const sortOnceBtn = document.querySelector('.sortOnceBtn');
 const alertToggleBtn = document.querySelector('.alertToggleBtn');
 const urgencyAlert = document.querySelector('.urgencyAlert');
 const urgencyAlertText = document.querySelector('.urgencyAlertText');
+const onboardingHint = document.querySelector('.onboardingHint');
+const onboardingStartTourBtn = document.querySelector('.onboardingStartTourBtn');
+const onboardingDismissBtn = document.querySelector('.onboardingDismissBtn');
+const nextTaskPanel = document.querySelector('.nextTaskPanel');
+const nextTaskTitle = document.querySelector('.nextTaskTitle');
+const nextTaskReasons = document.querySelector('.nextTaskReasons');
+const mainColumn = document.querySelector('.mainColumn');
+const sideColumn = document.querySelector('.sideColumn');
+const priorityControlsPanel = document.querySelector('.priorityControls');
 const activityMonthRow = document.querySelector('.activityMonthRow');
 const activityDayLabels = document.querySelector('.activityDayLabels');
 const activityGrid = document.querySelector('.activityGrid');
 const activitySummary = document.querySelector('.activitySummary');
+const activityPanel = document.querySelector('.activityPanel');
 const deadlinePresetButtons = Array.from(document.querySelectorAll('.deadlinePresetBtn'));
 const taskViewButtons = Array.from(document.querySelectorAll('.taskViewBtn'));
 const overdueViewButton = document.querySelector('.taskViewBtn[data-view="overdue"]');
@@ -28,12 +38,29 @@ const tasksList = document.querySelector('.tasks');
 const progressBar = document.querySelector('.progressBar');
 const motivatorText = document.querySelector('.motivatorText');
 const taskAmountText = document.querySelector('.taskAmount');
+const activityDetailsOverlay = document.querySelector('.activityDetailsOverlay');
+const activityDetailsTitle = document.querySelector('.activityDetailsTitle');
+const activityDetailsMeta = document.querySelector('.activityDetailsMeta');
+const activityDetailsList = document.querySelector('.activityDetailsList');
+const activityDetailsCloseBtn = document.querySelector('.activityDetailsCloseBtn');
+const undoToast = document.querySelector('.undoToast');
+const undoToastText = document.querySelector('.undoToastText');
+const undoDeleteBtn = document.querySelector('.undoDeleteBtn');
+const tourOverlay = document.querySelector('.tourOverlay');
+const tourCard = document.querySelector('.tourCard');
+const tourStepLabel = document.querySelector('.tourStepLabel');
+const tourTitle = document.querySelector('.tourTitle');
+const tourText = document.querySelector('.tourText');
+const tourSkipBtn = document.querySelector('.tourSkipBtn');
+const tourNextBtn = document.querySelector('.tourNextBtn');
 
 const STORAGE_KEY = 'todoTasksV3';
 const PREV_STORAGE_KEY = 'todoTasksV2';
 const LEGACY_STORAGE_KEY = 'todoTasks';
 const SETTINGS_KEY = 'todoSettingsV1';
 const ACTIVITY_KEY = 'todoActivityV1';
+const ACTIVITY_HISTORY_KEY = 'todoActivityHistoryV1';
+const COACH_KEY = 'todoCoachV1';
 
 const MATRIX_CONFIG = {
     do: { label: 'Do', rank: 4, className: 'matrix-do' },
@@ -77,6 +104,12 @@ const stageReminderTimestamps = new Map();
 let lastGlobalReminderAt = 0;
 let popupAlertsEnabled = false;
 let activityCountsByDate = {};
+let activityHistoryByDate = {};
+let activityTooltip = null;
+let pendingDeletedTask = null;
+let undoDeleteTimeoutId = null;
+let activeTourStepIndex = -1;
+let tourHighlightedElement = null;
 
 const REMINDER_COOLDOWN_MS = {
     soon: 45 * 60 * 1000,
@@ -85,6 +118,31 @@ const REMINDER_COOLDOWN_MS = {
 };
 
 const GLOBAL_REMINDER_GAP_MS = 8 * 60 * 1000;
+const MOBILE_LAYOUT_QUERY = window.matchMedia('(max-width: 900px)');
+const UNDO_DELETE_TIMEOUT_MS = 6000;
+
+const TOUR_STEPS = [
+    {
+        selector: '.inputContainer',
+        title: 'Add a task quickly',
+        text: 'Type your task here, then press + or Enter to add it.'
+    },
+    {
+        selector: '.detailsToggleBtn',
+        title: 'Open smart options',
+        text: 'Use Prioritize to set matrix, difficulty, estimate, and deadline.'
+    },
+    {
+        selector: '.priorityControls',
+        title: 'Choose sorting mode',
+        text: 'Auto-sort keeps tasks ranked. Sort once now gives a one-time smart order.'
+    },
+    {
+        selector: '.activityPanel',
+        title: 'Track completed work',
+        text: 'Tap any day in Daily Activity to see completion history details.'
+    }
+];
 
 const clickAudio = new Audio('Button Click SFX.mp3');
 clickAudio.preload = 'auto';
@@ -103,6 +161,12 @@ detailsToggleBtn.addEventListener('click', () => {
     playClickSound();
     setDetailsPanelOpen(!taskDetailsPanel.classList.contains('open'));
 });
+if (onboardingDismissBtn) {
+    onboardingDismissBtn.addEventListener('click', dismissOnboardingHint);
+}
+if (onboardingStartTourBtn) {
+    onboardingStartTourBtn.addEventListener('click', startOnboardingTutorial);
+}
 
 matrixSelect.addEventListener('change', playClickSound);
 if (difficultySelect) {
@@ -164,19 +228,86 @@ taskInput.addEventListener('keydown', (event) => {
     }
 });
 
+if (undoDeleteBtn) {
+    undoDeleteBtn.addEventListener('click', undoLastDelete);
+}
+
+if (activityDetailsCloseBtn) {
+    activityDetailsCloseBtn.addEventListener('click', () => {
+        playClickSound();
+        closeActivityDetails();
+    });
+}
+
+if (activityDetailsOverlay) {
+    activityDetailsOverlay.addEventListener('click', (event) => {
+        if (event.target === activityDetailsOverlay) {
+            closeActivityDetails();
+        }
+    });
+}
+
+if (tourSkipBtn) {
+    tourSkipBtn.addEventListener('click', () => endOnboardingTutorial(true));
+}
+
+if (tourNextBtn) {
+    tourNextBtn.addEventListener('click', goToNextTourStep);
+}
+
+window.addEventListener('resize', positionTourCard);
+window.addEventListener('scroll', positionTourCard, true);
+document.addEventListener('keydown', onGlobalKeyDown);
+
+if (typeof MOBILE_LAYOUT_QUERY.addEventListener === 'function') {
+    MOBILE_LAYOUT_QUERY.addEventListener('change', syncPriorityControlsPlacement);
+} else if (typeof MOBILE_LAYOUT_QUERY.addListener === 'function') {
+    MOBILE_LAYOUT_QUERY.addListener(syncPriorityControlsPlacement);
+}
+
+syncPriorityControlsPlacement();
+
 loadSettings();
 loadTasks();
 loadActivityCounts();
+loadActivityHistory();
 applyOrdering();
 setTaskTypePillState('open');
 updateDurationInputVisibility();
 setDetailsPanelOpen(false);
+renderOnboardingHint();
 renderTasks();
 updateTaskSummary();
 updateAlertToggleButton();
 renderActivityHeatmap();
 startRealtimeUpdates();
 initializeTaskEditor();
+
+function syncPriorityControlsPlacement() {
+    if (!priorityControlsPanel || !mainColumn || !sideColumn || !tasksList || !activityPanel) {
+        return;
+    }
+
+    const isMobile = MOBILE_LAYOUT_QUERY.matches;
+
+    if (isMobile) {
+        if (priorityControlsPanel.parentElement !== mainColumn || priorityControlsPanel.nextElementSibling !== tasksList) {
+            mainColumn.insertBefore(priorityControlsPanel, tasksList);
+        }
+
+        if (activityPanel.parentElement !== sideColumn || activityPanel !== sideColumn.lastElementChild) {
+            sideColumn.appendChild(activityPanel);
+        }
+    } else {
+        if (activityPanel.parentElement !== sideColumn || activityPanel !== sideColumn.firstElementChild) {
+            sideColumn.insertBefore(activityPanel, sideColumn.firstElementChild);
+        }
+
+        if (priorityControlsPanel.parentElement !== sideColumn || priorityControlsPanel !== sideColumn.lastElementChild) {
+            sideColumn.appendChild(priorityControlsPanel);
+        }
+    }
+}
 
 function addTaskFromInputs() {
     playClickSound();
@@ -289,6 +420,143 @@ function onTogglePopupAlerts() {
     saveSettings();
 }
 
+function dismissOnboardingHint() {
+    playClickSound();
+    localStorage.setItem(COACH_KEY, 'dismissed');
+    renderOnboardingHint();
+}
+
+function renderOnboardingHint() {
+    if (!onboardingHint) {
+        return;
+    }
+
+    const coachState = localStorage.getItem(COACH_KEY);
+    const shouldHide = coachState === 'dismissed' || coachState === 'tour-completed';
+    onboardingHint.classList.toggle('hidden', shouldHide);
+}
+
+function startOnboardingTutorial() {
+    playClickSound();
+    if (!tourOverlay || !tourCard || !tourStepLabel || !tourTitle || !tourText) {
+        return;
+    }
+
+    localStorage.removeItem(COACH_KEY);
+    setDetailsPanelOpen(false);
+    activeTourStepIndex = -1;
+    tourOverlay.classList.remove('hidden');
+    tourOverlay.setAttribute('aria-hidden', 'false');
+    goToNextTourStep();
+}
+
+function goToNextTourStep() {
+    let nextIndex = activeTourStepIndex + 1;
+
+    while (nextIndex < TOUR_STEPS.length) {
+        if (prepareTourStep(nextIndex)) {
+            return;
+        }
+        nextIndex += 1;
+    }
+
+    endOnboardingTutorial(false);
+}
+
+function prepareTourStep(stepIndex) {
+    const step = TOUR_STEPS[stepIndex];
+    if (!step) {
+        return false;
+    }
+
+    if (step.selector === '.detailsToggleBtn') {
+        setDetailsPanelOpen(true);
+    }
+
+    const target = document.querySelector(step.selector);
+    if (!target) {
+        return false;
+    }
+
+    if (tourHighlightedElement) {
+        tourHighlightedElement.classList.remove('tourTarget');
+    }
+
+    activeTourStepIndex = stepIndex;
+    tourHighlightedElement = target;
+    tourHighlightedElement.classList.add('tourTarget');
+
+    tourStepLabel.textContent = `Step ${stepIndex + 1} of ${TOUR_STEPS.length}`;
+    tourTitle.textContent = step.title;
+    tourText.textContent = step.text;
+    tourNextBtn.textContent = stepIndex === TOUR_STEPS.length - 1 ? 'Finish' : 'Next';
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(positionTourCard, 180);
+    return true;
+}
+
+function positionTourCard() {
+    if (!tourOverlay || tourOverlay.classList.contains('hidden') || !tourCard || !tourHighlightedElement) {
+        return;
+    }
+
+    const targetRect = tourHighlightedElement.getBoundingClientRect();
+    const cardRect = tourCard.getBoundingClientRect();
+    const spacing = 12;
+
+    const centeredLeft = Math.max(12, Math.min(window.innerWidth - cardRect.width - 12, targetRect.left + ((targetRect.width - cardRect.width) / 2)));
+    const belowTop = targetRect.bottom + spacing;
+    const aboveTop = targetRect.top - cardRect.height - spacing;
+    const top = belowTop + cardRect.height <= window.innerHeight - 10
+        ? belowTop
+        : Math.max(10, aboveTop);
+
+    tourCard.style.left = `${centeredLeft}px`;
+    tourCard.style.top = `${top}px`;
+}
+
+function endOnboardingTutorial(skipped) {
+    if (!tourOverlay || !tourCard) {
+        return;
+    }
+
+    if (tourHighlightedElement) {
+        tourHighlightedElement.classList.remove('tourTarget');
+    }
+
+    tourHighlightedElement = null;
+    activeTourStepIndex = -1;
+    tourOverlay.classList.add('hidden');
+    tourOverlay.setAttribute('aria-hidden', 'true');
+    tourCard.style.left = '';
+    tourCard.style.top = '';
+
+    localStorage.setItem(COACH_KEY, skipped ? 'dismissed' : 'tour-completed');
+    renderOnboardingHint();
+}
+
+function onGlobalKeyDown(event) {
+    if (event.key === 'Escape') {
+        if (activityDetailsOverlay && !activityDetailsOverlay.classList.contains('hidden')) {
+            closeActivityDetails();
+            return;
+        }
+
+        if (tourOverlay && !tourOverlay.classList.contains('hidden')) {
+            endOnboardingTutorial(true);
+        }
+    }
+}
+
+function applyRankNowOrder() {
+    tasks.sort(compareByPriority);
+    tasks.forEach((task, index) => {
+        task.manualOrder = index + 1;
+        task.updatedAt = new Date().toISOString();
+    });
+}
+
 function updateAlertToggleButton() {
     if (!alertToggleBtn) {
         return;
@@ -313,17 +581,13 @@ function onSuggestOrderOnce() {
 
     playClickSound();
 
-    tasks.sort(compareByPriority);
-    tasks.forEach((task, index) => {
-        task.manualOrder = index + 1;
-        task.updatedAt = new Date().toISOString();
-    });
+    applyRankNowOrder();
 
     renderTasks();
     updateTaskSummary();
     updateUrgencyAlert();
     saveTasks();
-    priorityModeHint.textContent = 'Suggested order applied once. You are still in manual mode, so drag-and-drop remains available.';
+    priorityModeHint.textContent = 'One-time smart sort applied. You are still in manual mode, so drag-and-drop remains available.';
 }
 
 function updateDurationInputVisibility() {
@@ -428,6 +692,7 @@ function syncDurationChipState() {
 }
 
 function renderTasks() {
+    syncPriorityControlsPlacement();
     tasksList.innerHTML = '';
     const visibleTasks = getVisibleTasks();
 
@@ -444,6 +709,7 @@ function renderTasks() {
 
     tasksList.classList.toggle('priority-on', isAutoPrioritize);
     updatePriorityModeHint();
+    updateNextTaskPanel();
     updateUrgencyAlert();
 }
 
@@ -618,6 +884,76 @@ function getDifficultyLabel(level) {
     const normalizedLevel = getValidDifficultyLevel(level);
     const difficulty = DIFFICULTY_CONFIG[normalizedLevel];
     return `D${normalizedLevel} (${difficulty.label})`;
+}
+
+function getRecommendedTask() {
+    const activeTasks = tasks.filter((task) => !task.completed);
+    if (activeTasks.length === 0) {
+        return null;
+    }
+
+    return [...activeTasks].sort(compareByPriority)[0];
+}
+
+function getPriorityReasons(task) {
+    const reasons = [];
+    const status = getDeadlineStatus(task.dueAt);
+    const matrix = getValidMatrixValue(task.matrix);
+    const difficulty = getValidDifficultyLevel(task.difficulty);
+
+    if (status.isOverdue) {
+        reasons.push('This task is overdue right now.');
+    } else if (status.hasDeadline) {
+        if (status.timeUntilMs <= 7200000) {
+            reasons.push('Deadline is very close (within 2 hours).');
+        } else if (status.timeUntilMs <= 86400000) {
+            reasons.push('Deadline is due today.');
+        }
+    }
+
+    if (matrix === 'do') {
+        reasons.push('Marked as Important and Urgent.');
+    } else if (matrix === 'schedule') {
+        reasons.push('Marked as Important in your matrix.');
+    } else if (matrix === 'delegate') {
+        reasons.push('Marked as Urgent in your matrix.');
+    }
+
+    if (difficulty >= 4) {
+        reasons.push('High difficulty tasks are moved up to avoid delay.');
+    }
+
+    if (task.taskType === 'timeboxed' && task.estimateMinutes) {
+        reasons.push(`Estimated time is ${task.estimateMinutes} minutes.`);
+    }
+
+    if (reasons.length === 0) {
+        reasons.push('Best overall priority score from your current inputs.');
+    }
+
+    return reasons.slice(0, 3);
+}
+
+function updateNextTaskPanel() {
+    if (!nextTaskPanel || !nextTaskTitle || !nextTaskReasons) {
+        return;
+    }
+
+    const recommended = getRecommendedTask();
+    if (!recommended) {
+        nextTaskPanel.classList.add('hidden');
+        return;
+    }
+
+    nextTaskPanel.classList.remove('hidden');
+    nextTaskTitle.textContent = recommended.text;
+    nextTaskReasons.innerHTML = '';
+
+    getPriorityReasons(recommended).forEach((reason) => {
+        const reasonItem = document.createElement('li');
+        reasonItem.textContent = reason;
+        nextTaskReasons.appendChild(reasonItem);
+    });
 }
 
 function canUseManualDrag() {
@@ -798,8 +1134,10 @@ function toggleTaskCompletion(taskId) {
 
     if (!wasCompleted && task.completed) {
         addActivityCount(1);
+        addActivityHistoryEntry(task);
     } else if (wasCompleted && !task.completed) {
         addActivityCount(-1);
+        removeLatestActivityHistoryEntry(task);
     }
 
     applyOrdering();
@@ -811,13 +1149,69 @@ function toggleTaskCompletion(taskId) {
 }
 
 function deleteTask(taskId) {
-    tasks = tasks.filter((task) => task.id !== taskId);
+    const deleteIndex = tasks.findIndex((task) => task.id === taskId);
+    if (deleteIndex < 0) {
+        return;
+    }
+
+    const [deletedTask] = tasks.splice(deleteIndex, 1);
+    showUndoDeleteToast(deletedTask, deleteIndex);
+
     normalizeManualOrder();
     applyOrdering();
     renderTasks();
     updateTaskSummary();
     updateUrgencyAlert();
     saveTasks();
+}
+
+function showUndoDeleteToast(task, deletedIndex) {
+    if (!undoToast || !undoToastText || !task) {
+        return;
+    }
+
+    pendingDeletedTask = { task: { ...task }, deletedIndex };
+    undoToastText.textContent = `Deleted: ${task.text}`;
+    undoToast.classList.remove('hidden');
+
+    if (undoDeleteTimeoutId) {
+        clearTimeout(undoDeleteTimeoutId);
+    }
+
+    undoDeleteTimeoutId = setTimeout(() => {
+        clearPendingDeleteState();
+    }, UNDO_DELETE_TIMEOUT_MS);
+}
+
+function undoLastDelete() {
+    if (!pendingDeletedTask) {
+        return;
+    }
+
+    playClickSound();
+
+    const insertIndex = Math.max(0, Math.min(tasks.length, pendingDeletedTask.deletedIndex));
+    tasks.splice(insertIndex, 0, pendingDeletedTask.task);
+    normalizeManualOrder();
+    applyOrdering();
+    renderTasks();
+    updateTaskSummary();
+    updateUrgencyAlert();
+    saveTasks();
+    clearPendingDeleteState();
+}
+
+function clearPendingDeleteState() {
+    pendingDeletedTask = null;
+
+    if (undoDeleteTimeoutId) {
+        clearTimeout(undoDeleteTimeoutId);
+        undoDeleteTimeoutId = null;
+    }
+
+    if (undoToast) {
+        undoToast.classList.add('hidden');
+    }
 }
 
 function editTask(taskId) {
@@ -863,19 +1257,19 @@ function initializeTaskEditor() {
                 <input type="text" class="editorTextInput" maxlength="240">
             </label>
             <label>
-                Eisenhower Matrix
+                Task Matrix
                 <select class="editorMatrixSelect">
-                    <option value="do">Do (Important + Urgent)</option>
-                    <option value="schedule">Schedule (Important)</option>
-                    <option value="delegate">Delegate (Urgent)</option>
-                    <option value="eliminate">Eliminate (Low Priority)</option>
+                    <option value="do">Task Matrix: Important & Urgent</option>
+                    <option value="schedule">Task Matrix: Important</option>
+                    <option value="delegate">Task Matrix: Urgent</option>
+                    <option value="eliminate">Task Matrix: None</option>
                 </select>
             </label>
             <label>
                 Task Type
                 <div class="editorEffortRow">
                     <select class="editorTaskTypeSelect">
-                        <option value="timeboxed">Estimate time (known minutes)</option>
+                        <option value="timeboxed">Estimate time</option>
                         <option value="open">No time estimate</option>
                     </select>
                     <input type="number" class="editorDurationInput" min="5" step="5" placeholder="Minutes">
@@ -1163,7 +1557,7 @@ function updatePriorityModeHint() {
     sortOnceBtn.disabled = isAutoPrioritize || activeView !== 'all';
 
     if (isAutoPrioritize) {
-        priorityModeHint.textContent = 'Auto mode: tasks are sorted by deadline, matrix, and task type. Drag and drop is disabled.';
+        priorityModeHint.textContent = 'Auto-sort is on: tasks reorder continuously so your best next task stays at the top.';
         return;
     }
 
@@ -1172,7 +1566,7 @@ function updatePriorityModeHint() {
         return;
     }
 
-    priorityModeHint.textContent = 'Manual mode: drag and drop to customize order. Use Suggest order once for a one-time smart sort.';
+    priorityModeHint.textContent = 'Manual mode: drag to reorder anytime. Use Sort once now for a one-time smart order.';
 }
 
 function loadTasks() {
@@ -1301,8 +1695,29 @@ function loadActivityCounts() {
     pruneActivityCounts();
 }
 
+function loadActivityHistory() {
+    const raw = localStorage.getItem(ACTIVITY_HISTORY_KEY);
+    if (!raw) {
+        activityHistoryByDate = {};
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        activityHistoryByDate = parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        activityHistoryByDate = {};
+    }
+
+    pruneActivityHistory();
+}
+
 function saveActivityCounts() {
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activityCountsByDate));
+}
+
+function saveActivityHistory() {
+    localStorage.setItem(ACTIVITY_HISTORY_KEY, JSON.stringify(activityHistoryByDate));
 }
 
 function addActivityCount(delta) {
@@ -1320,6 +1735,44 @@ function addActivityCount(delta) {
     saveActivityCounts();
 }
 
+function addActivityHistoryEntry(task) {
+    const todayKey = getDateKey(new Date());
+    if (!Array.isArray(activityHistoryByDate[todayKey])) {
+        activityHistoryByDate[todayKey] = [];
+    }
+
+    activityHistoryByDate[todayKey].push({
+        taskId: task.id,
+        taskText: task.text,
+        completedAt: new Date().toISOString()
+    });
+
+    pruneActivityHistory();
+    saveActivityHistory();
+}
+
+function removeLatestActivityHistoryEntry(task) {
+    const todayKey = getDateKey(new Date());
+    const entries = activityHistoryByDate[todayKey];
+    if (!Array.isArray(entries) || entries.length === 0) {
+        return;
+    }
+
+    const entryIndex = [...entries].reverse().findIndex((entry) => entry.taskId === task.id);
+    if (entryIndex < 0) {
+        return;
+    }
+
+    const actualIndex = entries.length - 1 - entryIndex;
+    entries.splice(actualIndex, 1);
+
+    if (entries.length === 0) {
+        delete activityHistoryByDate[todayKey];
+    }
+
+    saveActivityHistory();
+}
+
 function pruneActivityCounts() {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 220);
@@ -1328,6 +1781,26 @@ function pruneActivityCounts() {
         const date = new Date(`${dateKey}T00:00:00`);
         if (Number.isNaN(date.getTime()) || date < cutoff) {
             delete activityCountsByDate[dateKey];
+        }
+    });
+}
+
+function pruneActivityHistory() {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 220);
+
+    Object.keys(activityHistoryByDate).forEach((dateKey) => {
+        const date = new Date(`${dateKey}T00:00:00`);
+        if (Number.isNaN(date.getTime()) || date < cutoff) {
+            delete activityHistoryByDate[dateKey];
+            return;
+        }
+
+        const entries = Array.isArray(activityHistoryByDate[dateKey]) ? activityHistoryByDate[dateKey] : [];
+        activityHistoryByDate[dateKey] = entries.filter((entry) => typeof entry?.taskText === 'string' && entry.taskText.trim() !== '');
+
+        if (activityHistoryByDate[dateKey].length === 0) {
+            delete activityHistoryByDate[dateKey];
         }
     });
 }
@@ -1418,13 +1891,132 @@ function renderActivityHeatmap() {
         if (!inWindow) {
             cell.classList.add('outside-window');
         }
-        cell.title = `${dateKey}: ${count} completed task${count === 1 ? '' : 's'}`;
+
+        const dayLabel = date.toLocaleDateString([], {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const tooltipText = `${dayLabel}: ${count} completed task${count === 1 ? '' : 's'}`;
+        cell.setAttribute('aria-label', tooltipText);
+        cell.dataset.dateKey = dateKey;
+        cell.dataset.dayLabel = dayLabel;
+        cell.addEventListener('mouseenter', (event) => showActivityTooltip(tooltipText, event));
+        cell.addEventListener('mousemove', moveActivityTooltip);
+        cell.addEventListener('mouseleave', hideActivityTooltip);
+        cell.addEventListener('click', (event) => {
+            event.stopPropagation();
+            playClickSound();
+            openActivityDetails(dateKey, dayLabel, count);
+        });
         activityGrid.appendChild(cell);
     }
 
     activitySummary.textContent = `Today: ${todayCompletions} | This week: ${thisWeekCompletions} | ${activeDays} active day${activeDays === 1 ? '' : 's'} in last 6 months`;
     activityGrid.setAttribute('aria-label', `Activity heatmap for the last 6 months ending ${getDateKey(today)}`);
     lastActivityRenderDateKey = getDateKey(today);
+}
+
+function openActivityDetails(dateKey, dayLabel, count) {
+    if (!activityDetailsOverlay || !activityDetailsTitle || !activityDetailsMeta || !activityDetailsList) {
+        return;
+    }
+
+    const entries = Array.isArray(activityHistoryByDate[dateKey])
+        ? [...activityHistoryByDate[dateKey]].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
+        : [];
+
+    activityDetailsTitle.textContent = dayLabel;
+    activityDetailsMeta.textContent = `${count} completed task${count === 1 ? '' : 's'}`;
+    activityDetailsList.innerHTML = '';
+
+    if (entries.length === 0) {
+        const noEntry = document.createElement('li');
+        noEntry.className = 'activityDetailsEmpty';
+        noEntry.textContent = count > 0
+            ? 'Task-level details were not recorded for this date yet.'
+            : 'No completed tasks on this day.';
+        activityDetailsList.appendChild(noEntry);
+    } else {
+        entries.forEach((entry) => {
+            const item = document.createElement('li');
+            item.className = 'activityDetailsItem';
+
+            const taskText = document.createElement('p');
+            taskText.className = 'activityDetailsTaskText';
+            taskText.textContent = entry.taskText;
+
+            const completedAt = document.createElement('p');
+            completedAt.className = 'activityDetailsTaskTime';
+            completedAt.textContent = isValidDateValue(entry.completedAt)
+                ? `Completed at ${new Date(entry.completedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+                : 'Completed';
+
+            item.appendChild(taskText);
+            item.appendChild(completedAt);
+            activityDetailsList.appendChild(item);
+        });
+    }
+
+    activityDetailsOverlay.classList.remove('hidden');
+    activityDetailsOverlay.setAttribute('aria-hidden', 'false');
+}
+
+function closeActivityDetails() {
+    if (!activityDetailsOverlay) {
+        return;
+    }
+
+    activityDetailsOverlay.classList.add('hidden');
+    activityDetailsOverlay.setAttribute('aria-hidden', 'true');
+}
+
+function ensureActivityTooltip() {
+    if (activityTooltip || !activityPanel) {
+        return;
+    }
+
+    activityTooltip = document.createElement('div');
+    activityTooltip.className = 'activityTooltip hidden';
+    document.body.appendChild(activityTooltip);
+}
+
+function showActivityTooltip(text, event) {
+    ensureActivityTooltip();
+    if (!activityTooltip) {
+        return;
+    }
+
+    activityTooltip.textContent = text;
+    activityTooltip.classList.remove('hidden');
+    moveActivityTooltip(event);
+}
+
+function moveActivityTooltip(event) {
+    if (!activityTooltip || activityTooltip.classList.contains('hidden')) {
+        return;
+    }
+
+    const offset = 14;
+    const tooltipRect = activityTooltip.getBoundingClientRect();
+    const maxLeft = window.innerWidth - tooltipRect.width - 8;
+    const maxTop = window.innerHeight - tooltipRect.height - 8;
+    const pointerX = typeof event?.clientX === 'number' ? event.clientX : (window.innerWidth / 2);
+    const pointerY = typeof event?.clientY === 'number' ? event.clientY : (window.innerHeight / 2);
+
+    const left = Math.max(8, Math.min(maxLeft, pointerX + offset));
+    const top = Math.max(8, Math.min(maxTop, pointerY + offset));
+
+    activityTooltip.style.left = `${left}px`;
+    activityTooltip.style.top = `${top}px`;
+}
+
+function hideActivityTooltip() {
+    if (!activityTooltip) {
+        return;
+    }
+    activityTooltip.classList.add('hidden');
 }
 
 function getHeatLevel(count) {
@@ -1745,6 +2337,7 @@ function maybeNotifyTaskUrgency(task, status) {
     }
 
     const stage = status.urgencyLevel;
+
     const now = Date.now();
     const stageCooldown = REMINDER_COOLDOWN_MS[stage] || REMINDER_COOLDOWN_MS.soon;
     const notifyKey = `${task.id}|${task.dueAt || ''}|${stage}`;

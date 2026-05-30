@@ -8,159 +8,202 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20260529w">
+    <link rel="stylesheet" href="style.css?v=20260530aj">
 </head>
 <body>
     
     <div class="container">
+        <div class="appShell">
+            <section class="mainColumn">
+                <h1 class="title">To-Do List</h1>
 
+                <div class="motivatorContainer">
 
-        <div class="to-doList">
+                    <p class="motivatorText">Keep it up!</p>
 
-            <h1 class="title">To-Do List</h1>
+                    <div class="progressBarContainer">
 
-            <div class="motivatorContainer">
+                        <div class="progressBar"></div>
+                    </div>
 
-                <p class="motivatorText">Keep it up!</p>
+                    <div class="taskAmountContainer">
 
-                <div class="progressBarContainer">
+                        <p class="taskAmount">0/0</p>
+                    </div>
 
-                    <div class="progressBar"></div>
                 </div>
 
-                <div class="taskAmountContainer">
+                <div class="inputContainer">
 
-                    <p class="taskAmount">0/0</p>
+                    <input type="text" class="taskInput" placeholder="Type your task..."> 
+                    <button class="detailsToggleBtn" type="button" aria-expanded="false" aria-controls="taskDetailsPanel" title="Set priority, difficulty, effort, and deadline for smarter task order">
+                        Prioritize
+                    </button>
+                    <button class="addBtn" type="button" title="Add task" aria-label="Add task">
+
+                        <i class="fa-solid fa-plus"></i>
+
+                    </button>
+
                 </div>
 
-            </div>
-
-            <div class="activityPanel" aria-label="Daily activity chart">
-                <div class="activityHeader">
-                    <p class="activityTitle">Daily Activity</p>
-                    <p class="activitySummary">Today: 0 | This week: 0 | 0 active days in last 6 months</p>
-                </div>
-                <div class="activityGridWrap">
-                    <div class="activityMonthRow" aria-hidden="true"></div>
-                    <div class="activityBody">
-                        <div class="activityDayLabels" aria-hidden="true"></div>
-                        <div class="activityGrid" role="img" aria-label="Activity heatmap"></div>
+                <div class="onboardingHint hidden" role="note" aria-live="polite">
+                    <p class="onboardingHintText"><strong>Quick start:</strong> Add tasks, set matrix/difficulty/deadline, then use <strong>Sort once now</strong> or turn on <strong>Auto-sort list</strong> to always see what to do first.</p>
+                    <div class="onboardingActions">
+                        <button class="onboardingStartTourBtn" type="button">Start tutorial</button>
+                        <button class="onboardingDismissBtn" type="button">Dismiss</button>
                     </div>
                 </div>
-                <div class="activityLegend">
-                    <span>Less</span>
-                    <span class="heatCell level-0"></span>
-                    <span class="heatCell level-1"></span>
-                    <span class="heatCell level-2"></span>
-                    <span class="heatCell level-3"></span>
-                    <span class="heatCell level-4"></span>
-                    <span>More</span>
-                </div>
-            </div>
 
-            <div class="inputContainer">
+                <div class="taskDetailsPanel" id="taskDetailsPanel">
+                    <p class="detailsHelp">Priority and difficulty help the app decide what should be done first.</p>
+                    <div class="detailsGrid">
+                        <select class="matrixSelect" aria-label="Priority type">
+                            <option value="do">Task Matrix: Important &amp; Urgent</option>
+                            <option value="schedule" selected>Task Matrix: Important</option>
+                            <option value="delegate">Task Matrix: Urgent</option>
+                            <option value="eliminate">Task Matrix: None</option>
+                        </select>
 
-                <input type="text" class="taskInput" placeholder="Type your task..."> 
-                <button class="detailsToggleBtn" type="button" aria-expanded="false" aria-controls="taskDetailsPanel" title="Set priority, difficulty, effort, and deadline for smarter task order">
-                    Prioritize
-                </button>
-                <button class="addBtn" type="button" title="Add task" aria-label="Add task">
+                        <select class="difficultySelect" aria-label="Difficulty">
+                            <option value="1">Difficulty: 1 (Very Easy)</option>
+                            <option value="2">Difficulty: 2 (Easy)</option>
+                            <option value="3" selected>Difficulty: 3 (Medium)</option>
+                            <option value="4">Difficulty: 4 (Hard)</option>
+                            <option value="5">Difficulty: 5 (Very Hard)</option>
+                        </select>
 
-                    <i class="fa-solid fa-plus"></i>
-
-                </button>
-
-            </div>
-
-            <div class="taskDetailsPanel" id="taskDetailsPanel">
-                <div class="detailsGrid">
-                    <select class="matrixSelect" aria-label="Priority type">
-                        <option value="do">Task Matrix: Important &amp; Urgent</option>
-                        <option value="schedule" selected>Task Matrix: Important</option>
-                        <option value="delegate">Task Matrix: Urgent</option>
-                        <option value="eliminate">Task Matrix: None</option>
-                    </select>
-
-                    <select class="difficultySelect" aria-label="Difficulty">
-                        <option value="1">Difficulty: 1 (Very Easy)</option>
-                        <option value="2">Difficulty: 2 (Easy)</option>
-                        <option value="3" selected>Difficulty: 3 (Medium)</option>
-                        <option value="4">Difficulty: 4 (Hard)</option>
-                        <option value="5">Difficulty: 5 (Very Hard)</option>
-                    </select>
-
-                    <div class="effortContainer">
-                        <div class="taskTypePills" aria-label="Time estimate optional">
-                            <button type="button" class="typePill active" data-type="open" data-tip="No time estimate. Use this when you are not sure how long it will take.">No time estimate</button>
-                            <button type="button" class="typePill" data-type="timeboxed" data-tip="Set an estimated time in minutes so planning is more accurate.">Estimate time</button>
-                        </div>
-                        <div class="durationWrap">
-                            <input type="number" class="durationInput hidden" min="5" step="5" placeholder="Mins" aria-label="Estimated minutes">
-                            <div class="durationChips">
-                                <button type="button" class="durationChip" data-minutes="15">15m</button>
-                                <button type="button" class="durationChip" data-minutes="30">30m</button>
-                                <button type="button" class="durationChip" data-minutes="45">45m</button>
-                                <button type="button" class="durationChip" data-minutes="60">60m</button>
+                        <div class="effortContainer">
+                            <div class="taskTypePills" aria-label="Time estimate optional">
+                                <button type="button" class="typePill active" data-type="open" data-tip="No time estimate. Use this when you are not sure how long it will take.">No time estimate</button>
+                                <button type="button" class="typePill" data-type="timeboxed" data-tip="Set an estimated time in minutes so planning is more accurate.">Estimate time</button>
+                            </div>
+                            <div class="durationWrap">
+                                <input type="number" class="durationInput hidden" min="5" step="5" placeholder="Mins" aria-label="Estimated minutes">
+                                <div class="durationChips">
+                                    <button type="button" class="durationChip" data-minutes="15">15m</button>
+                                    <button type="button" class="durationChip" data-minutes="30">30m</button>
+                                    <button type="button" class="durationChip" data-minutes="45">45m</button>
+                                    <button type="button" class="durationChip" data-minutes="60">60m</button>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="deadlineContainer">
+                            <span class="deadlineTag"><i class="fa-regular fa-calendar"></i> Deadline</span>
+                            <input type="datetime-local" class="deadlineInput" aria-label="Deadline" title="Set deadline date and time" placeholder="Set date and time">
+                        </div>
                     </div>
 
-                    <div class="deadlineContainer">
-                        <span class="deadlineTag"><i class="fa-regular fa-calendar"></i> Deadline</span>
-                        <input type="datetime-local" class="deadlineInput" aria-label="Deadline" title="Set deadline date and time" placeholder="Set date and time">
+                    <div class="deadlinePresets" aria-label="Quick deadline presets">
+                        <button class="deadlinePresetBtn" data-preset="hour2">In 2 hours</button>
+                        <button class="deadlinePresetBtn" data-preset="hour6">In 6 hours</button>
+                        <button class="deadlinePresetBtn" data-preset="eod">End of day</button>
+                        <button class="deadlinePresetBtn" data-preset="tomorrow">Tomorrow 9 AM</button>
+                        <button class="deadlinePresetBtn" data-preset="clear">No deadline</button>
                     </div>
                 </div>
 
-                <div class="deadlinePresets" aria-label="Quick deadline presets">
-                    <button class="deadlinePresetBtn" data-preset="hour2">In 2 hours</button>
-                    <button class="deadlinePresetBtn" data-preset="hour6">In 6 hours</button>
-                    <button class="deadlinePresetBtn" data-preset="eod">End of day</button>
-                    <button class="deadlinePresetBtn" data-preset="tomorrow">Tomorrow 9 AM</button>
-                    <button class="deadlinePresetBtn" data-preset="clear">No deadline</button>
+                <div class="urgencyAlert hidden" role="status" aria-live="polite">
+                    <p class="urgencyAlertText">No urgent deadlines right now.</p>
                 </div>
-            </div>
 
-            <div class="urgencyAlert hidden" role="status" aria-live="polite">
-                <p class="urgencyAlertText">No urgent deadlines right now.</p>
-            </div>
-
-            <div class="priorityControls">
-                <div class="priorityHeaderRow">
-                    <label class="priorityToggleLabel" for="priorityToggle">
-                        <input type="checkbox" class="priorityToggle" id="priorityToggle">
-                        <span>Auto prioritize</span>
-                    </label>
-                    <button class="sortOnceBtn" type="button" title="Apply smart order once while staying in manual mode">Suggest order once</button>
-                    <button class="alertToggleBtn" type="button">Popup alerts: Off</button>
+                <div class="nextTaskPanel hidden" aria-live="polite">
+                    <p class="nextTaskLabel">Do This Next</p>
+                    <p class="nextTaskTitle">No recommendation yet.</p>
+                    <div class="nextTaskReasonWrap">
+                        <p class="nextTaskReasonLabel">Why this is first:</p>
+                        <ul class="nextTaskReasons"></ul>
+                    </div>
                 </div>
-                <p class="priorityModeHint">Manual mode: drag to reorder.</p>
-            </div>
 
-            <div class="taskViews" aria-label="Task views">
-                <button class="taskViewBtn active" data-view="all">All</button>
-                <button class="taskViewBtn" data-view="focus">Focus Now</button>
-                <button class="taskViewBtn" data-view="overdue" aria-label="Overdue">
-                    <span>Overdue</span>
-                    <span class="overdueCountBadge" aria-hidden="true">0</span>
-                </button>
-                <button class="taskViewBtn" data-view="today">Due Today</button>
-                <button class="taskViewBtn" data-view="week">This Week</button>
-                <button class="taskViewBtn" data-view="completed">Completed</button>
-            </div>
+                <div class="taskViews" aria-label="Task views">
+                    <button class="taskViewBtn active" data-view="all">All</button>
+                    <button class="taskViewBtn" data-view="focus">Focus Now</button>
+                    <button class="taskViewBtn" data-view="overdue" aria-label="Overdue">
+                        <span>Overdue</span>
+                        <span class="overdueCountBadge" aria-hidden="true">0</span>
+                    </button>
+                    <button class="taskViewBtn" data-view="today">Due Today</button>
+                    <button class="taskViewBtn" data-view="week">This Week</button>
+                    <button class="taskViewBtn" data-view="completed">Completed</button>
+                </div>
 
-            <ul class="tasks">
+                <ul class="tasks">
 
-                
+                    
 
-            </ul>
+                </ul>
+            </section>
 
+            <aside class="sideColumn">
+                <div class="activityPanel" aria-label="Daily activity chart">
+                    <div class="activityHeader">
+                        <p class="activityTitle">Daily Activity</p>
+                        <p class="activitySummary">Today: 0 | This week: 0 | 0 active days in last 6 months</p>
+                    </div>
+                    <div class="activityGridWrap">
+                        <div class="activityMonthRow" aria-hidden="true"></div>
+                        <div class="activityBody">
+                            <div class="activityDayLabels" aria-hidden="true"></div>
+                            <div class="activityGrid" role="img" aria-label="Activity heatmap"></div>
+                        </div>
+                    </div>
+                    <div class="activityLegend">
+                        <span>Less</span>
+                        <span class="heatCell level-0"></span>
+                        <span class="heatCell level-1"></span>
+                        <span class="heatCell level-2"></span>
+                        <span class="heatCell level-3"></span>
+                        <span class="heatCell level-4"></span>
+                        <span>More</span>
+                    </div>
+                </div>
 
+                <div class="priorityControls">
+                    <div class="priorityHeaderRow">
+                        <label class="priorityToggleLabel" for="priorityToggle">
+                            <input type="checkbox" class="priorityToggle" id="priorityToggle">
+                            <span>Auto-sort list</span>
+                        </label>
+                        <button class="sortOnceBtn" type="button" title="Apply a one-time smart sort by urgency, priority, and effort">Sort once now</button>
+                        <button class="alertToggleBtn" type="button">Popup alerts: Off</button>
+                    </div>
+                    <p class="priorityModeHint">Manual mode: drag to reorder anytime.</p>
+                </div>
+            </aside>
         </div>
-
-
     </div>
 
-    <script src="script.js?v=20260529u"></script>
+    <div class="activityDetailsOverlay hidden" aria-hidden="true">
+        <div class="activityDetailsCard" role="dialog" aria-modal="true" aria-label="Completed tasks on selected day">
+            <div class="activityDetailsHeader">
+                <h3 class="activityDetailsTitle">Completed on this day</h3>
+                <button class="activityDetailsCloseBtn" type="button" aria-label="Close activity details">Close</button>
+            </div>
+            <p class="activityDetailsMeta">0 completed tasks</p>
+            <ul class="activityDetailsList"></ul>
+        </div>
+    </div>
+
+    <div class="undoToast hidden" role="status" aria-live="polite">
+        <p class="undoToastText">Task deleted.</p>
+        <button class="undoDeleteBtn" type="button">Undo</button>
+    </div>
+
+    <div class="tourOverlay hidden" aria-hidden="true">
+        <div class="tourCard" role="dialog" aria-modal="true" aria-label="App tutorial">
+            <p class="tourStepLabel">Step 1 of 4</p>
+            <h3 class="tourTitle">Welcome</h3>
+            <p class="tourText">This tutorial shows exactly what to do.</p>
+            <div class="tourActions">
+                <button class="tourSkipBtn" type="button">Skip</button>
+                <button class="tourNextBtn" type="button">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=20260530aj"></script>
 
 
 </body>
